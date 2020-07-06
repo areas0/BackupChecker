@@ -1,31 +1,51 @@
 ﻿using System;
+using System.IO;
 using IntegrityChecker.DataTypes;
 
 namespace IntegrityChecker.Loaders
 {
     public class Checker
     {
-        private string _original;
         private Folder _originalFolder = null;
-        private string _backup;
-        private Folder _backupFolder = null;
 
-        public Checker(string original, string backup)
+        public Folder OriginalFolder
         {
-            _original = original;
-            _backup = backup;
-            Loader.LoadJson(original, ref _originalFolder);
-            Loader.LoadJson(backup, ref _backupFolder);
+            get => _originalFolder;
+            set => _originalFolder = value;
         }
 
-        public bool CheckFolders()
+        private string _backup;
+        private string Original;
+        private Folder _backupFolder = null;
+        private int _errors = 0;
+
+        public int Errors => _errors;
+
+        public Folder BackupFolder
         {
-            int errors = 0;
+            get => _backupFolder;
+            set => _backupFolder = value;
+        }
+
+        public Checker(string original, string backup, bool manual = false)
+        {
+            Original = original;
+            _backup = backup;
+            if (manual)
+                return;
+            string jsonString = File.ReadAllText(original);
+            string jsonString2 = File.ReadAllText(_backup);
+            Loader.LoadJson(jsonString, ref _originalFolder);
+            Loader.LoadJson(jsonString2, ref _backupFolder);
+        }
+
+        public string CheckFolders()
+        {
             if (_backupFolder.Sums.Count != _originalFolder.Sums.Count)
             {
                 Console.Error.WriteLine("Failure: {0} missing file(s)", _originalFolder.Sums.Count-_backupFolder.Sums.Count);
                 MissingFile();
-                return false;
+                return $"Failure: {_originalFolder.Sums.Count - _backupFolder.Sums.Count} missing file(s)";
             }
 
             string failures = "";
@@ -39,25 +59,25 @@ namespace IntegrityChecker.Loaders
                     failures += "Sum: \n" +
                                 "New: " + _backupFolder.Sums[i].Path +" "+_backupFolder.Sums[i].Sum+
                                 " \nOriginal : " + _originalFolder.Sums[i].Path+" "+_originalFolder.Sums[i].Sum+"\n";
-                    errors++;
+                    _errors++;
                 }
                 if (_backupFolder.Sums[i].Path != _originalFolder.Sums[i].Path)
                 {
                     failures += "Path: \n" +
                                 "New: " + _backupFolder.Sums[i].Path +" "+_backupFolder.Sums[i].Sum+
                                 " \nOriginal : " + _originalFolder.Sums[i].Path+" "+_originalFolder.Sums[i].Sum+"\n";
-                    errors++;
+                    _errors++;
                 }
             }
 
             if (failures != string.Empty)
             {
-                Console.WriteLine("Check succeeded, {0} error(s)", errors);
+                Console.WriteLine("Check succeeded, {0} error(s)", _errors);
                 Console.WriteLine(failures);
-                return false;
+                return failures;
             }
             Console.WriteLine("Check succeeded, 0 error found.");
-            return true;
+            return failures;
         }
 
         private void MissingFile()

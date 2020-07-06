@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using IntegrityChecker.DataTypes;
 using IntegrityChecker.Loaders;
 
@@ -22,6 +24,9 @@ namespace IntegrityChecker
                     //     
                     // }
                     Interface();
+                    //Console.WriteLine(JsonSerializer.Serialize(new List<string>() {"0", ""}));
+                    //Folder f = null;
+                    //Loader.LoadJson(File.ReadAllText(@"C:\Users\Shadow\RiderProjects\IntegrityChecker\BackupChecker\IntegrityChecker\bin\Debug\netcoreapp3.1\Export - [Nemuri] Violet Evergarden ヴァイオレット・エヴァーガーデン (2018-2020) [FLAC] lundi 6 juillet 2020.json"), ref f);
         }
 
         public static void Interface()

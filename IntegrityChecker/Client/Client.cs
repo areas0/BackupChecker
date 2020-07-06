@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using IntegrityChecker.DataTypes;
 using IntegrityChecker.Loaders;
 using IntegrityChecker.Scheduler;
 
@@ -144,19 +146,58 @@ namespace IntegrityChecker.Client
                     finished = true;
                 }
 
-                await Task.Delay(100);
+                await Task.Delay(1000);
             }
             Console.WriteLine("Outside");
             string folder = await backup;
             Console.WriteLine("Finished");
             _sender.Send(JsonSerializer.SerializeToUtf8Bytes(Status.Ok));
+            ProceedResults(folder);
         }
         public static async Task<string> Backup(string origin)
         {
-            await Task.Delay(30000);
+            await Task.Delay(3000);
             string folder = new Folder(origin).ExportJson();
             Console.WriteLine("Sha1 generation finished");
             return folder;
+        }
+
+        public void ProceedResults(string folder)
+        {
+            _sender.Send(Encoding.UTF8.GetBytes(folder));
+            GetResults();
+        }
+
+        public void GetResults()
+        {
+            Console.Write("Waiting for results....");
+            // var bytesb = new byte[10000];
+            // int bytesRec = _sender.Receive(bytesb);
+            // var str = Encoding.UTF8.GetString(bytesb, 0, bytesRec);
+            string data = string.Empty;
+            while (true)  
+            {  
+                var bytes = new byte[10000];  
+                int bytesRec = _sender.Receive(bytes);  
+                data += Encoding.UTF8.GetString(bytes, 0, bytesRec);  
+                if (data.IndexOf("<EOF>", StringComparison.Ordinal) > -1)  
+                {  
+                    break;  
+                }  
+            }
+
+            string result = data.Substring(0, data.Length - 5);
+            Result Result = JsonSerializer.Deserialize<Result>(result);
+            Console.Write(Result.ErrorCount+Result.ErrorMessage);
+            //string[] result = new[] {"0", ""};
+            if (true)
+            {
+               // Console.WriteLine(str);
+            }
+            else
+            {
+                Console.Write("Check passed successfully");
+            }
         }
     }
 }

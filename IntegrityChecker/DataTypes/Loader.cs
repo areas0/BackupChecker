@@ -38,9 +38,8 @@ namespace IntegrityChecker.DataTypes
             return folder;
         }
 
-        public static void LoadJson(string path, ref Folder folder)
+        public static void LoadJson(string jsonString, ref Folder folder)
         {
-            string jsonString = File.ReadAllText(path);
             folder = JsonSerializer.Deserialize<ManualFolder>(jsonString).Export();
         }
     }

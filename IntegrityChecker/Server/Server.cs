@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using IntegrityChecker.DataTypes;
 using IntegrityChecker.Loaders;
 using IntegrityChecker.Scheduler;
 
@@ -125,6 +127,37 @@ namespace IntegrityChecker.Server
             Console.WriteLine("Outside");
             string folder = await backup;
             _handler.Send(JsonSerializer.SerializeToUtf8Bytes(Status.Ok));
+            ReceiveResult(folder);
+        }
+
+        public void ReceiveResult(string folder)
+        {
+            var bytes = new byte[10000000];
+            int bytesRec = _handler.Receive(bytes);  
+            var data = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+            File.WriteAllText("test.json", data);
+            Folder f = null;
+            Loader.LoadJson(data, ref f);
+            
+            Folder original = null;
+            Loader.LoadJson(folder, ref original);
+            Checker checker = new Checker(origin, origin, true){BackupFolder = f, OriginalFolder = original};
+            string result = checker.CheckFolders();
+            int errors = checker.Errors;
+            string resultWithErrors = $"There was {errors} error(s) \n {result}";
+            SendResults(errors, result+"b");
+
+        }
+
+        public void SendResults(int errors, string result)
+        {
+            Console.WriteLine((string) JsonSerializer.Serialize(new Result(){ErrorCount = errors, ErrorMessage = result}));
+            Result resultF = new Result() {ErrorCount = errors, ErrorMessage = result};
+            string ser = JsonSerializer.Serialize(resultF);
+            byte[] msg = Encoding.UTF8.GetBytes(ser);
+            _handler.Send(msg);
+            byte[] msg_sec = Encoding.ASCII.GetBytes("<EOF>");
+            _handler.Send(msg_sec);
         }
 
         public static async Task<string> Backup(string origin)
