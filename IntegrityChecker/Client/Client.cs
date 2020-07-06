@@ -87,20 +87,15 @@ namespace IntegrityChecker.Client
 
         public void ReceiveBackupCommand()
         {
-            byte[] bytes = new byte[1024];  
-            int bytesRec = _sender.Receive(bytes);
-
-            string message = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+            var message = Backend.Network.Receive(_sender);
             Tasks task = JsonSerializer.Deserialize<Tasks>(message);
             if (task.OriginName == Origin)
             {
-                string status = JsonSerializer.Serialize(Status.Ok);
-                _sender.Send(Encoding.UTF8.GetBytes(status));
+                Backend.Network.SerializedSend(_sender, Status.Ok);
             }
             else
             {
-                string status = JsonSerializer.Serialize(Status.Error);
-                _sender.Send(Encoding.UTF8.GetBytes(status));
+                Backend.Network.SerializedSend(_sender, Status.Error);
                 _sender.Close();
                 throw new Exception("Backup init failed, exiting...");
             }
@@ -130,18 +125,20 @@ namespace IntegrityChecker.Client
             {
                 if (!backup.IsCompleted)
                 {
-                    _sender.Send(JsonSerializer.SerializeToUtf8Bytes(Status.Waiting));
+                    Backend.Network.SerializedSend(_sender, Status.Waiting);
                 }
                 else
                 {
-                    _sender.Send(JsonSerializer.SerializeToUtf8Bytes(Status.Ok));
+                    Backend.Network.SerializedSend(_sender, Status.Ok);
                 }
                 Console.WriteLine("In loop");
-                var bytes = new byte[10000];
-                int bytesRec = _sender.Receive(bytes);  
-                var data = Encoding.UTF8.GetString(bytes, 0, bytesRec); 
-                Console.WriteLine(JsonSerializer.Deserialize<Status>(data));
-                if (JsonSerializer.Deserialize<Status>(data) == Status.Ok)
+
+                var data = Backend.Network.Receive(_sender);
+                Console.Write(data);
+                Status deserialize = JsonSerializer.Deserialize<Status>(data);
+                Console.WriteLine(deserialize);
+                
+                if (deserialize == Status.Ok)
                 {
                     finished = true;
                 }
@@ -151,12 +148,12 @@ namespace IntegrityChecker.Client
             Console.WriteLine("Outside");
             string folder = await backup;
             Console.WriteLine("Finished");
-            _sender.Send(JsonSerializer.SerializeToUtf8Bytes(Status.Ok));
+            Backend.Network.SerializedSend(_sender, Status.Ok);
             ProceedResults(folder);
         }
         public static async Task<string> Backup(string origin)
         {
-            await Task.Delay(3000);
+            await Task.Delay(1000);
             string folder = new Folder(origin).ExportJson();
             Console.WriteLine("Sha1 generation finished");
             return folder;
@@ -164,27 +161,14 @@ namespace IntegrityChecker.Client
 
         public void ProceedResults(string folder)
         {
-            _sender.Send(Encoding.UTF8.GetBytes(folder));
+            Backend.Network.Send(_sender, folder);
             GetResults();
         }
 
         public void GetResults()
         {
             Console.Write("Waiting for results....");
-            // var bytesb = new byte[10000];
-            // int bytesRec = _sender.Receive(bytesb);
-            // var str = Encoding.UTF8.GetString(bytesb, 0, bytesRec);
-            string data = string.Empty;
-            while (true)  
-            {  
-                var bytes = new byte[10000];  
-                int bytesRec = _sender.Receive(bytes);  
-                data += Encoding.UTF8.GetString(bytes, 0, bytesRec);  
-                if (data.IndexOf("<EOF>", StringComparison.Ordinal) > -1)  
-                {  
-                    break;  
-                }  
-            }
+            var data = Backend.Network.Receive(_sender);
 
             string result = data.Substring(0, data.Length - 5);
             Result Result = JsonSerializer.Deserialize<Result>(result);

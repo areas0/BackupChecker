@@ -78,14 +78,8 @@ namespace IntegrityChecker.Server
         public void SendBackupCommand()
         {
             Tasks task = new Tasks(){OriginName = origin, Current = Tasks.Task.Backup};
-            string serialized = JsonSerializer.Serialize(task);
-            
-            _handler.Send(Encoding.UTF8.GetBytes(serialized));
-            
-            string data = "";
-            var bytes = new byte[10000];
-            int bytesRec = _handler.Receive(bytes);  
-            data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
+            Backend.Network.SerializedSend(_handler, task);
+            var data = Backend.Network.Receive(_handler);
             Status status = JsonSerializer.Deserialize<Status>(data);
             if (status == Status.Error)
             {
@@ -93,7 +87,6 @@ namespace IntegrityChecker.Server
             }
             
             Console.WriteLine("Starting Sha1 generation for the current folder!");
-            //string folder = new Folder(origin).ExportJson();
             ExecuteBackup();
         }
 
@@ -106,16 +99,14 @@ namespace IntegrityChecker.Server
                 Console.WriteLine("In loop");
                 if (!backup.IsCompleted)
                 {
-                    _handler.Send(JsonSerializer.SerializeToUtf8Bytes(Status.Waiting));
+                    Backend.Network.SerializedSend(_handler, Status.Waiting);
                 }
                 else
                 {
-                    _handler.Send(JsonSerializer.SerializeToUtf8Bytes(Status.Ok));
+                    Backend.Network.SerializedSend(_handler,Status.Ok);
                 }
                 
-                var bytes = new byte[10000];
-                int bytesRec = _handler.Receive(bytes);  
-                var data = Encoding.UTF8.GetString(bytes, 0, bytesRec);  
+                var data = Backend.Network.Receive(_handler);
                 Console.WriteLine(JsonSerializer.Deserialize<Status>(data));
                 if (JsonSerializer.Deserialize<Status>(data) == Status.Ok)
                 {
@@ -126,15 +117,14 @@ namespace IntegrityChecker.Server
             }
             Console.WriteLine("Outside");
             string folder = await backup;
-            _handler.Send(JsonSerializer.SerializeToUtf8Bytes(Status.Ok));
+            
+            Backend.Network.SerializedSend(_handler, Status.Ok);
             ReceiveResult(folder);
         }
 
         public void ReceiveResult(string folder)
         {
-            var bytes = new byte[10000000];
-            int bytesRec = _handler.Receive(bytes);  
-            var data = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+            var data = Backend.Network.Receive(_handler);
             File.WriteAllText("test.json", data);
             Folder f = null;
             Loader.LoadJson(data, ref f);
@@ -153,11 +143,7 @@ namespace IntegrityChecker.Server
         {
             Console.WriteLine((string) JsonSerializer.Serialize(new Result(){ErrorCount = errors, ErrorMessage = result}));
             Result resultF = new Result() {ErrorCount = errors, ErrorMessage = result};
-            string ser = JsonSerializer.Serialize(resultF);
-            byte[] msg = Encoding.UTF8.GetBytes(ser);
-            _handler.Send(msg);
-            byte[] msg_sec = Encoding.ASCII.GetBytes("<EOF>");
-            _handler.Send(msg_sec);
+            Backend.Network.SerializedSend(_handler, resultF);
         }
 
         public static async Task<string> Backup(string origin)
