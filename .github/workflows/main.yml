@@ -20,4 +20,10 @@ jobs:
 
     - name: Build with dotnet
       working-directory: ./
-      run: dotnet build --configuration Release
+      run: dotnet build --configuration Release --output /a
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: MSIX Package
+        path: ./a
