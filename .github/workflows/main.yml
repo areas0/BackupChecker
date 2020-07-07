@@ -20,10 +20,10 @@ jobs:
 
     - name: Build with dotnet
       working-directory: ./
-      run: dotnet build --configuration Release --output /a
+      run: dotnet build --configuration Release
       
     - name: Upload build artifacts
       uses: actions/upload-artifact@v1
       with:
         name: MSIX Package
-        path: ./a
+        path: /home/runner/work/BackupChecker/BackupChecker/IntegrityChecker/bin/Release/netcoreapp3.1/
