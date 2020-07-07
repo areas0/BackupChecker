@@ -44,8 +44,8 @@ namespace IntegrityChecker.Loaders
             if (_backupFolder.Sums.Count != _originalFolder.Sums.Count)
             {
                 Console.Error.WriteLine("Failure: {0} missing file(s)", _originalFolder.Sums.Count-_backupFolder.Sums.Count);
-                MissingFile();
-                return $"Failure: {_originalFolder.Sums.Count - _backupFolder.Sums.Count} missing file(s)";
+                string message = MissingFile();
+                return $"Failure: {_originalFolder.Sums.Count - _backupFolder.Sums.Count} missing file(s) \n {message}";
             }
 
             string failures = "";
@@ -80,8 +80,9 @@ namespace IntegrityChecker.Loaders
             return failures;
         }
 
-        private void MissingFile()
+        private string MissingFile()
         {
+            string message = "";
             for (int i = 0; i < _originalFolder.Sums.Count; i++)
             {
                 try
@@ -99,7 +100,9 @@ namespace IntegrityChecker.Loaders
 
                         if (found)
                             continue;
+                        _errors++;
                         Console.WriteLine("Missing file : {0}", _originalFolder.Sums[i].Path);
+                        message += $"Missing file: {_originalFolder.Sums[i].Path} \n";
                     }
                 }
                 catch (Exception)
@@ -107,6 +110,8 @@ namespace IntegrityChecker.Loaders
                     continue;
                 }
             }
+
+            return message;
         }
     }
 }

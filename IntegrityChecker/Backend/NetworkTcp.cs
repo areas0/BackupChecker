@@ -113,5 +113,10 @@ namespace IntegrityChecker.Backend
             //Console.WriteLine(Encoding.UTF8.GetString(bytes));
             return Encoding.UTF8.GetString(bytes);
         }
+
+        public static void Disconnect(TcpClient client)
+        {
+            client.GetStream().Close();
+        }
     }
 }

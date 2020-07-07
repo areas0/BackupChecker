@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using IntegrityChecker.Client;
 using IntegrityChecker.DataTypes;
@@ -25,22 +26,11 @@ namespace IntegrityChecker
 
                     //     
                     // }
-                    //Interface();
+                    Interface();
                     //Console.WriteLine(JsonSerializer.Serialize(new List<string>() {"0", ""}));
                     //Folder f = null;
          
             //Loader.LoadJson(File.ReadAllText(@"C:\Users\Shadow\RiderProjects\IntegrityChecker\BackupChecker\IntegrityChecker\bin\Debug\netcoreapp3.1\Export - [Nemuri] Violet Evergarden ヴァイオレット・エヴァーガーデン (2018-2020) [FLAC] lundi 6 juillet 2020.json"), ref f);
-            string a = Console.ReadLine();
-            Console.Clear();
-            switch (a)
-            {
-                case "0":
-                    new ServerTcp("").Init();
-                    break;
-                case "1":
-                    new ClientTcp("").Init();
-                    break;
-            }
         }
 
         public static void Interface()
@@ -49,10 +39,17 @@ namespace IntegrityChecker
         Welcome to integrity checker V0.1
 
         Menu: 1 to export a folder SHA1 
-        2 to get the SHA1 value of a file";
+        2 to get the SHA1 value of a file
+        3 to check already exported folders
+        4 (network) Begin a remote check (server)
+        5 (network) Connect to a remote check session (only if server is already online!
+
+        Useful information: the port used to do the remote check is 11000, make sure that it is opened on your desktop or router";
             Console.WriteLine(welcome);
             try
             {
+                Console.OutputEncoding = Encoding.Unicode;
+                Console.InputEncoding = Encoding.Unicode;
                 int option = Convert.ToInt32(Console.ReadLine());
                 switch (option)
                 {
@@ -73,23 +70,27 @@ namespace IntegrityChecker
                         string path2 = Console.ReadLine();
                         new Checker(path1, path2).CheckFolders();
                         break;
-                    case 10:
+                    case 4:
                         Console.WriteLine("Server mode activated! Enter the path to work on please: ");
                         string origin = Console.ReadLine();
                         if (!Directory.Exists(origin))
                         {
                             //break;
                         }
-                        Server.Server s = new Server.Server(origin);
+                        Console.WriteLine("Enter an ip to connect to (default is localhost) :");
+                        string ip = Console.ReadLine();
+                        ServerTcp s = new ServerTcp(origin,ip);
                         break;
-                    case 11:
+                    case 5:
                         Console.WriteLine("Client mode activated! Enter the path to work on please: ");
                         string originBackup = Console.ReadLine();
                         if (!Directory.Exists(originBackup))
                         {
                             //break;
                         }
-                        Client.Client client = new Client.Client(originBackup);
+                        Console.WriteLine("Enter an ip to connect to (default is localhost) :");
+                        string remoteIp = Console.ReadLine();
+                        ClientTcp clientTcp = new ClientTcp(originBackup, remoteIp);
                         break;
                     default:
                         Console.Clear();
@@ -106,7 +107,8 @@ namespace IntegrityChecker
             }
             catch (Exception e)
             {
-                throw new Exception("There was an error: \n"+e.Message);
+                //throw new Exception("There was an error: \n"+e.Message);
+                throw;
             }
 
             Console.ReadKey();

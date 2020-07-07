@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -13,12 +14,14 @@ namespace IntegrityChecker.Client
 {
     public class ClientTcp
     {
-        private TcpClient client;
-        private string _origin= @"D:\Anime\[TheFantastics] Violet Evergarden  - VOSTFR (Bluray x264 10bits 1080p FLAC)\[Nemuri] Violet Evergarden ヴァイオレット・エヴァーガーデン (2018-2020) [FLAC]";
-        
-        public ClientTcp(string origin)
+        private TcpClient _client;
+        private string _origin;
+        private string _ip;
+        public ClientTcp(string origin, string ip = "127.0.0.1")
         {
-            //_origin = origin;
+            _origin = origin;
+            _ip = ip;
+            Init();
         }
 
         public void Init()
@@ -26,10 +29,11 @@ namespace IntegrityChecker.Client
             try
             {
                 int port = ServerTcp.Port;
-                client = new TcpClient("127.0.0.1", port);
+                _client = new TcpClient(_ip, port);
             }
             catch (Exception e)
             {
+                _client.Close();
                 throw;
             }
             ReceiveBackupCommand();
@@ -37,14 +41,14 @@ namespace IntegrityChecker.Client
         
         public void ReceiveBackupCommand()
         {
-            var message = NetworkTcp.Receive(client, Packet.Owner.Client, 10);
+            var message = NetworkTcp.Receive(_client, Packet.Owner.Client, 10);
             Tasks task = JsonSerializer.Deserialize<Tasks>(message);
             
             if (task.OriginName == _origin)
-                NetworkTcp.SendObject(client, Status.Ok, Packet.Owner.Client, 0);
+                NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 0);
             else
             {
-                NetworkTcp.SendObject(client, Status.Error, Packet.Owner.Client, 0);
+                NetworkTcp.SendObject(_client, Status.Error, Packet.Owner.Client, 0);
                 //client.Close();
                 throw new Exception("Backup init failed, exiting...");
             }
@@ -74,8 +78,8 @@ namespace IntegrityChecker.Client
             string folder = await backup;
             while (true)
             {
-                NetworkTcp.SendObject(client, Status.Ok, Packet.Owner.Client, 1);
-                string data = NetworkTcp.Receive(client, Packet.Owner.Client, 20);
+                NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 1);
+                string data = NetworkTcp.Receive(_client, Packet.Owner.Client, 20);
                 if (JsonSerializer.Deserialize<Status>(data) == Status.Ok)
                 {
                     break;
@@ -95,7 +99,7 @@ namespace IntegrityChecker.Client
         public async void ProceedResults(string folder)
         {
             //Console.WriteLine($"Send results {folder}");
-            NetworkTcp.SendViaClient(client, folder, Packet.Owner.Client, 2);
+            NetworkTcp.SendViaClient(_client, folder, Packet.Owner.Client, 2);
             GetResults();
         }
 
@@ -104,17 +108,19 @@ namespace IntegrityChecker.Client
             Console.Write("Waiting for results....");
             while (true)
             {
-                var status = NetworkTcp.Receive(client, Packet.Owner.Client, 11);
+                var status = NetworkTcp.Receive(_client, Packet.Owner.Client, 11);
                 if (JsonSerializer.Deserialize<Status>(status) == Status.Ok)
                     break;
             }
             
-            NetworkTcp.SendObject(client, Status.Ok, Packet.Owner.Client, 3);
-            var data = NetworkTcp.Receive(client, Packet.Owner.Client, 12);
+            NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 3);
+            var data = NetworkTcp.Receive(_client, Packet.Owner.Client, 12);
 
             string resultb = data;
             Result result = JsonSerializer.Deserialize<Result>(resultb);
             Console.Write($"There was {result.ErrorCount} error(s). \n {result.ErrorMessage}");
+            NetworkTcp.Disconnect(_client);
+            _client.Close();
             //string[] result = new[] {"0", ""};
             if (true)
             {
