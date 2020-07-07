@@ -1,5 +1,6 @@
 # BackupChecker
-Tool via network integrity checker for backups in C# using SHA1
+Tool via network (or local) that does an integrity check for backups in C# using SHA1 hashes. 
+.Net Core (latest version) is required!
 # Features
 Tool available under V0.5 with basic features:
 - Find the sha1 of a file
@@ -12,5 +13,6 @@ It is buggy? Yes, sure, but most of the time it should work. Open an issue if ne
 # Why
 - Because I had time to spare
 - Because there was no such tool available online to my knowledge
+- It allows to do a safe checkup on files on two distant computers and make sure that they have the same files without sending files over network
 
 Created by Areas0 ~ 07/07/2020
