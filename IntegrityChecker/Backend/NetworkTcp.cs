@@ -11,21 +11,12 @@ namespace IntegrityChecker.Backend
 {
     public static class NetworkTcp
     {
-        public enum Type
-        {
-            Server,
-            Listener
-        }
-
         public static string Receive(TcpClient client, Packet.Owner owner, int expectedId)
         {
-            var data = String.Empty;
+            // maximum size of message, large size is chosen for the moment
             var bytes = new byte[1048576];
             while (true)
             {
-
-                data = null;
-
                 // Get a stream object for reading and writing
                 var stream = client.GetStream();
 
@@ -37,7 +28,7 @@ namespace IntegrityChecker.Backend
                 {
                     // Translate data bytes to a ASCII string.
                     i = stream.Read(bytes, 0, bytes.Length);
-                    data = Encoding.UTF8.GetString(bytes, 0, i);
+                    var data = Encoding.UTF8.GetString(bytes, 0, i);
                     var packet = FindPacket(data, expectedId);
                     if(packet is null)
                         continue;
@@ -64,9 +55,9 @@ namespace IntegrityChecker.Backend
             }
 
             Packet last = null;
-            for (var i = 0; i < messages.Count; i++)
+            foreach (var t in messages)
             {
-                var packet = JsonSerializer.Deserialize<Packet>(messages[i]);
+                var packet = JsonSerializer.Deserialize<Packet>(t);
                 if (packet.Id == id) 
                     last = packet;
             }

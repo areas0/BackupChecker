@@ -14,14 +14,14 @@ namespace IntegrityChecker.Server
     public class ServerTcp
     {
         public const int Port = 11000;
-        private string _ip;
+        //private string _ip;
         private readonly string _origin;
         private TcpListener _server;
         private TcpClient _client;
         public ServerTcp(string origin, string ip="127.0.0.1")
         {
             _origin = origin;
-            _ip = ip;
+            //_ip = ip;
             Init();
         }
         
@@ -47,10 +47,10 @@ namespace IntegrityChecker.Server
                 // Starts backup after the connection
                 SendBackupCommand();
             }
-            catch (SocketException e)
+            catch (SocketException)
             {
                 _client?.Close();
-                throw e;
+                throw;
             }
         }
 

@@ -65,9 +65,9 @@ namespace IntegrityChecker
                         {
                             //break;
                         }
-                        Console.WriteLine("Enter an ip to connect to (default is localhost) :");
-                        var ip = Console.ReadLine();
-                        var s = new ServerTcp(origin,ip);
+                        //Console.WriteLine("Enter an ip to connect to (default is localhost) :");
+                        //var ip = Console.ReadLine();
+                        var s = new ServerTcp(origin);
                         break;
                     case 5:
                         Console.WriteLine("Client mode activated! Enter the path to work on please: ");
@@ -98,8 +98,8 @@ namespace IntegrityChecker
             }
             catch (Exception e)
             {
-                //throw new Exception("There was an error: \n"+e.Message);
-                throw;
+                throw new Exception("There was an error: \n"+e.Message+"\n Exiting...");
+                //throw;
             }
 
             Console.ReadKey();
@@ -120,19 +120,6 @@ namespace IntegrityChecker
                     i++;
                 }
             }
-        }
-
-        public static void Cmanual()
-        {
-            var path_legacy = @"C:\Users\Shadow\RiderProjects\IntegrityChecker\BackupChecker\IntegrityChecker\bin\Release\netcoreapp3.1\Export - Clannad [BluRay&DVD x264-Hi10P FLAC] mardi 7 juillet 2020.sha1";
-            var path_json = @"C:\Users\Shadow\RiderProjects\IntegrityChecker\BackupChecker\IntegrityChecker\bin\Release\netcoreapp3.1\Export - Clannad [BluRay&DVD x264-Hi10P FLAC] mardi 7 juillet 2020.json";
-            var folder = Loader.LoadViaFile(path_legacy);
-            Folder original = null;
-            Loader.LoadJson(File.ReadAllText(path_json), ref original);
-            var ch = new Checker("","", true);
-            ch.BackupFolder = folder;
-            ch.OriginalFolder = original;
-            ch.CheckFolders();
         }
     }
 }

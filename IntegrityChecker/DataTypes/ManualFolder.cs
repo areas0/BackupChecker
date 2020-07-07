@@ -5,7 +5,8 @@ using IntegrityChecker.Loaders;
 namespace IntegrityChecker.DataTypes
 {
     //Type used to load files via JSON formatted files because constructor without parameter is required
-    public abstract class ManualFolder
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public class ManualFolder
     {
         private List<ManualFileSum> _sums;
         private string _path;
