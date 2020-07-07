@@ -15,8 +15,8 @@ namespace IntegrityChecker.Client
     public class ClientTcp
     {
         private TcpClient _client;
-        private string _origin;
-        private string _ip;
+        private readonly string _origin;
+        private readonly string _ip;
         public ClientTcp(string origin, string ip = "127.0.0.1")
         {
             _origin = origin;
@@ -24,25 +24,25 @@ namespace IntegrityChecker.Client
             Init();
         }
 
-        public void Init()
+        private void Init()
         {
             try
             {
-                int port = ServerTcp.Port;
+                var port = ServerTcp.Port;
                 _client = new TcpClient(_ip, port);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 _client.Close();
                 throw;
             }
             ReceiveBackupCommand();
         }
-        
-        public void ReceiveBackupCommand()
+
+        private void ReceiveBackupCommand()
         {
             var message = NetworkTcp.Receive(_client, Packet.Owner.Client, 10);
-            Tasks task = JsonSerializer.Deserialize<Tasks>(message);
+            var task = JsonSerializer.Deserialize<Tasks>(message);
             
             if (task.OriginName == _origin)
                 NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 0);
@@ -57,7 +57,6 @@ namespace IntegrityChecker.Client
             {
                 case Tasks.Task.Original:
                     throw new InvalidDataException("Client cannot be original folder!");
-                    break;
                 case Tasks.Task.Backup:
                     Console.WriteLine("Starting backup now!");
                     Console.ReadKey();
@@ -65,21 +64,21 @@ namespace IntegrityChecker.Client
                     break;
                 case Tasks.Task.Compare:
                     throw new InvalidDataException("Client cannot do the comparision!");
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
-        public async void Backup()
+
+        private async void Backup()
         {
             var backup = Backup(_origin);
             if(!backup.IsCompleted)
                 Console.WriteLine("Waiting for backup Sha1 generation to finish...");
-            string folder = await backup;
+            var folder = await backup;
             while (true)
             {
                 NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 1);
-                string data = NetworkTcp.Receive(_client, Packet.Owner.Client, 20);
+                var data = NetworkTcp.Receive(_client, Packet.Owner.Client, 20);
                 if (JsonSerializer.Deserialize<Status>(data) == Status.Ok)
                 {
                     break;
@@ -90,20 +89,21 @@ namespace IntegrityChecker.Client
             ProceedResults(folder);
             
         }
-        public static async Task<string> Backup(string origin)
+
+        private static async Task<string> Backup(string origin)
         {
-            string folder = new Folder(origin).ExportJson();
+            var folder = new Folder(origin).ExportJson();
             Console.WriteLine("Sha1 generation finished");
             return folder;
         }
-        public async void ProceedResults(string folder)
+
+        private void ProceedResults(string folder)
         {
-            //Console.WriteLine($"Send results {folder}");
             NetworkTcp.SendViaClient(_client, folder, Packet.Owner.Client, 2);
             GetResults();
         }
 
-        public async void GetResults()
+        private void GetResults()
         {
             Console.Write("Waiting for results....");
             while (true)
@@ -116,20 +116,11 @@ namespace IntegrityChecker.Client
             NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 3);
             var data = NetworkTcp.Receive(_client, Packet.Owner.Client, 12);
 
-            string resultb = data;
-            Result result = JsonSerializer.Deserialize<Result>(resultb);
+            var resultSecond = data;
+            var result = JsonSerializer.Deserialize<Result>(resultSecond);
             Console.Write($"There was {result.ErrorCount} error(s). \n {result.ErrorMessage}");
             NetworkTcp.Disconnect(_client);
             _client.Close();
-            //string[] result = new[] {"0", ""};
-            if (true)
-            {
-                // Console.WriteLine(str);
-            }
-            else
-            {
-                Console.Write("Check passed successfully");
-            }
         }
     }
 }

@@ -29,31 +29,40 @@ namespace IntegrityChecker.Loaders
 
         public Checker(string original, string backup, bool manual = false)
         {
+            // setting up paths (unused)
             Original = original;
             _backup = backup;
+            
+            //manual load case used for server purposes
             if (manual)
                 return;
-            string jsonString = File.ReadAllText(original);
-            string jsonString2 = File.ReadAllText(_backup);
+            //Loading the json files
+            var jsonString = File.ReadAllText(original);
+            var jsonString2 = File.ReadAllText(_backup);
+            // Deserialize the folders 
             Loader.LoadJson(jsonString, ref _originalFolder);
             Loader.LoadJson(jsonString2, ref _backupFolder);
         }
 
         public string CheckFolders()
         {
+            // if there is a missing file, we search which one is missing and return it as the error
             if (_backupFolder.Sums.Count != _originalFolder.Sums.Count)
             {
                 Console.Error.WriteLine("Failure: {0} missing file(s)", _originalFolder.Sums.Count-_backupFolder.Sums.Count);
-                string message = MissingFile();
+                var message = MissingFile();
                 return $"Failure: {_originalFolder.Sums.Count - _backupFolder.Sums.Count} missing file(s) \n {message}";
             }
 
-            string failures = "";
+            var failures = "";
             var sumsCount = _backupFolder.Sums.Count;
-            for (int i = 0; i < sumsCount; i++)
+            for (var i = 0; i < sumsCount; i++)
             {
-                Console.WriteLine((i+1)+"/"+sumsCount);
-                //_checkedFolder.Sums[i].Path != _originalFolder.Sums[i].Path ||
+                Console.Clear();
+                var completion = (int) ((i + 1) /(float) sumsCount * 100f);
+                Console.WriteLine("Generating report...");
+                Console.WriteLine($"Completion: {completion}%");
+                
                 if ( _backupFolder.Sums[i].Sum != _originalFolder.Sums[i].Sum)
                 {
                     failures += "Sum: \n" +
@@ -61,6 +70,7 @@ namespace IntegrityChecker.Loaders
                                 " \nOriginal : " + _originalFolder.Sums[i].Path+" "+_originalFolder.Sums[i].Sum+"\n";
                     _errors++;
                 }
+                
                 if (_backupFolder.Sums[i].Path != _originalFolder.Sums[i].Path)
                 {
                     failures += "Path: \n" +
@@ -82,15 +92,15 @@ namespace IntegrityChecker.Loaders
 
         private string MissingFile()
         {
-            string message = "";
-            for (int i = 0; i < _originalFolder.Sums.Count; i++)
+            var message = "";
+            for (var i = 0; i < _originalFolder.Sums.Count; i++)
             {
                 try
                 {
                     if (_backupFolder.Sums[i].Path != _originalFolder.Sums[i].Path)
                     {
-                        bool found = false;
-                        for (int j = 0; j < _backupFolder.Sums.Count; j++)
+                        var found = false;
+                        for (var j = 0; j < _backupFolder.Sums.Count; j++)
                         {
                             if (_originalFolder.Sums[i].Path == _backupFolder.Sums[j].Path)
                             {
@@ -107,7 +117,7 @@ namespace IntegrityChecker.Loaders
                 }
                 catch (Exception)
                 {
-                    continue;
+                    // ignored
                 }
             }
 

@@ -24,36 +24,35 @@ namespace IntegrityChecker.Loaders
         public FileSum(string path, string hash = "", bool manual = false)
         {
             
-            this._path = path;
-            this._sum = hash;
+            _path = path;
+            _sum = hash;
             if (manual)
                 return;
             if (File.Exists(path))
-                _sum = CalculateSHA1();
+                _sum = CalculateSha1();
             else
                 throw new ArgumentException("File does not exist");
         }
 
-        private string CalculateMD5()
+/*    Unused function
+        private string CalculateMd5()
         {
             using var md5 = MD5.Create();
             using var stream = File.OpenRead(_path);
             var hash = md5.ComputeHash(stream);
             return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
         }
+*/
 
-        private string CalculateSHA1()
+        private string CalculateSha1()
         {
-            using (FileStream stream = File.OpenRead(_path))
-            {
-                using (SHA1Managed sha = new SHA1Managed())
-                {
-                    byte[] checksum = sha.ComputeHash(stream);
-                    string sendCheckSum = BitConverter.ToString(checksum)
-                        .Replace("-", string.Empty);
-                    return sendCheckSum;
-                }
-            }
+            using var stream = File.OpenRead(_path);
+            using var sha = new SHA1Managed();
+            
+            var checksum = sha.ComputeHash(stream);
+            var sendCheckSum = BitConverter.ToString(checksum)
+                .Replace("-", string.Empty);
+            return sendCheckSum;
         }
     }
 }

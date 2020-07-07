@@ -40,9 +40,9 @@ namespace IntegrityChecker.Loaders
             Generate();
             Console.WriteLine("All SHA1 were generated");
             
-            DirectoryInfo directoryInfo = new DirectoryInfo(_path);
-            string name = directoryInfo.Name;
-            string fullname = directoryInfo.FullName;
+            var directoryInfo = new DirectoryInfo(_path);
+            var name = directoryInfo.Name;
+            var fullname = directoryInfo.FullName;
             foreach (var fileSum in _sums)
             {
                 fileSum.Path = fileSum.Path.Substring(fullname.Length - name.Length);
@@ -65,11 +65,15 @@ namespace IntegrityChecker.Loaders
         // Generate: loads all files in the folder and generates its hash
         private void Generate()
         {
-            int i = 0;
-            int n = _files.Count;
+            var i = 0;
+            var n = _files.Count;
             foreach (var file in _files)
             {
-                Console.WriteLine((i+1)+"/"+n+": "+file);
+                Console.Clear();
+                //Console.WriteLine((i+1)+"/"+n+": "+file);
+                var completion = (int) ((i + 1) /(float) n * 100f);
+                Console.WriteLine($"Completion: {completion}% ({i+1}/{n})");
+                Console.WriteLine($"Current file: {file}");
                 _sums.Add(new FileSum(file));
                 i++;
             }
@@ -77,16 +81,16 @@ namespace IntegrityChecker.Loaders
         //Legacy export format (deprecated)
         public void Export()
         {
-            DirectoryInfo directoryInfo = new DirectoryInfo(_path);
-            string name = directoryInfo.Name;
-            string fullname = directoryInfo.FullName;
-            string result = String.Empty;
+            var directoryInfo = new DirectoryInfo(_path);
+            var name = directoryInfo.Name;
+            var fullname = directoryInfo.FullName;
+            var result = String.Empty;
             foreach (var fileSum in _sums)
             {
                 result += fileSum.Path.Substring(fullname.Length-name.Length) + "\n" + fileSum.Sum + "\n";
             }
 
-            string filename = $"Export - {name} {DateTime.Today.Date.ToLongDateString()}.sha1";
+            var filename = $"Export - {name} {DateTime.Today.Date.ToLongDateString()}.sha1";
             File.Create(filename).Close();
             File.WriteAllText(filename, result);
             Console.WriteLine("Exported to "+filename);
@@ -94,13 +98,13 @@ namespace IntegrityChecker.Loaders
 
         public string ExportJson()
         {
-            DirectoryInfo directoryInfo = new DirectoryInfo(_path);
-            string name = directoryInfo.Name;
+            var directoryInfo = new DirectoryInfo(_path);
+            var name = directoryInfo.Name;
             //serializing the current object
-            string jsonString = JsonSerializer.Serialize(this);
+            var jsonString = JsonSerializer.Serialize(this);
             
             //Creating a file with json data in it
-            string filename = $"Export - {name} {DateTime.Today.Date.ToLongDateString()}.json";
+            var filename = $"Export - {name} {DateTime.Today.Date.ToLongDateString()}.json";
             File.Create(filename).Close();
             File.WriteAllText(filename, jsonString);
             

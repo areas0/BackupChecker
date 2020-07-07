@@ -5,4 +5,10 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Compile Remove="Backend\Network.cs" />
+      <Compile Remove="Client\Client.cs" />
+      <Compile Remove="Server\Server.cs" />
+    </ItemGroup>
+
 </Project>

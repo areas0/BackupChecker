@@ -5,7 +5,7 @@ using IntegrityChecker.Loaders;
 namespace IntegrityChecker.DataTypes
 {
     //Type used to load files via JSON formatted files because constructor without parameter is required
-    public class ManualFolder
+    public abstract class ManualFolder
     {
         private List<ManualFileSum> _sums;
         private string _path;
@@ -31,12 +31,12 @@ namespace IntegrityChecker.DataTypes
 
         public Folder Export()
         {
-            List<FileSum> exported = new List<FileSum>();
+            var exported = new List<FileSum>();
             foreach (var fileSum in _sums)
             {
                 exported.Add(fileSum.Export());
             }
-            Folder folder = new Folder(_path, true) {Sums = exported, Files = _files};
+            var folder = new Folder(_path, true) {Sums = exported, Files = _files};
             return folder;
         }
     }

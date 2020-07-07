@@ -3,7 +3,7 @@
 namespace IntegrityChecker.DataTypes
 {
     //Type used to load files via JSON formatted files because constructor without parameter is required
-    public class ManualFileSum
+    public abstract class ManualFileSum
     {
         private string _path;
         private string _sum;

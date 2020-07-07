@@ -1,10 +1,10 @@
 ﻿using System.IO;
 using System.Text.Json;
-using IntegrityChecker.Loaders;
+using IntegrityChecker.DataTypes;
 
-namespace IntegrityChecker.DataTypes
+namespace IntegrityChecker.Loaders
 {
-    public class Loader
+    public static class Loader
     {
         public static Folder LoadViaFile(string path)
         {
@@ -13,17 +13,17 @@ namespace IntegrityChecker.DataTypes
                 return null;
             }
 
-            string content = File.ReadAllText(path);
-            Folder folder = new Folder(path, true);
-            for (int i = 0; i < content.Length; i++)
+            var content = File.ReadAllText(path);
+            var folder = new Folder(path, true);
+            for (var i = 0; i < content.Length; i++)
             {
-                int n = i;
+                var n = i;
                 while (content[i] != '\n')
                 {
                     i++;
                 }
 
-                string pathfile = content.Substring(n, i-n);
+                var pathfile = content.Substring(n, i-n);
                 n = i+1;
                 i++;
                 while (content[i] != '\n')
@@ -31,7 +31,7 @@ namespace IntegrityChecker.DataTypes
                     i++;
                 }
 
-                string hash = content.Substring(n, i - n);
+                var hash = content.Substring(n, i - n);
                 folder.Sums.Add(new FileSum(pathfile, hash, true));
             }
 

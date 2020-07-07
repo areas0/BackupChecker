@@ -15,7 +15,7 @@ namespace IntegrityChecker.Server
     {
         public const int Port = 11000;
         private string _ip;
-        private string _origin;
+        private readonly string _origin;
         private TcpListener _server;
         private TcpClient _client;
         public ServerTcp(string origin, string ip="127.0.0.1")
@@ -26,7 +26,7 @@ namespace IntegrityChecker.Server
         }
         
         // Setup the server and launches the backup process
-        public void Init()
+        private void Init()
         {
             _server = null;
             try
@@ -53,15 +53,16 @@ namespace IntegrityChecker.Server
                 throw e;
             }
         }
-        public void SendBackupCommand()
+
+        private void SendBackupCommand()
         {
-            Tasks task = new Tasks {OriginName = _origin, Current = Tasks.Task.Backup};
+            var task = new Tasks {OriginName = _origin, Current = Tasks.Task.Backup};
             
             // SEND: Packet of task (id 10)
             NetworkTcp.SendObject(_client, task, Packet.Owner.Server, 10);
             // RECEIVE: Packet of status (id 0)
             var data = NetworkTcp.Receive(_client, Packet.Owner.Server, 0);
-            Status status = JsonSerializer.Deserialize<Status>(data);
+            var status = JsonSerializer.Deserialize<Status>(data);
             
             if (status == Status.Error) // stop the process if there is something on client not working
                 throw new Exception("Backup init failed, exiting...");
@@ -70,17 +71,18 @@ namespace IntegrityChecker.Server
             Console.ReadKey();
             ExecuteBackup();
         }
-        public async void ExecuteBackup()
+
+        private async void ExecuteBackup()
         {
             var backup = Backup(_origin);
             if(!backup.IsCompleted)
                 Console.WriteLine("Waiting for backup Sha1 generation to finish...");
-            string folder = await backup;
+            var folder = await backup;
             //PACKETS priority high: confirm backup finished on both client
             // SEND: Status packet (id20) (synchronize with client)
             NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Server, 20);
             // RECEIVE: Status packet (id 1) (verifies that client has finished)
-            Status currentStatus = JsonSerializer.Deserialize<Status>(NetworkTcp.Receive(_client, Packet.Owner.Server, 1));
+            var currentStatus = JsonSerializer.Deserialize<Status>(NetworkTcp.Receive(_client, Packet.Owner.Server, 1));
             if (currentStatus == Status.Ok)
             {
                 ReceiveResult(folder);
@@ -89,13 +91,14 @@ namespace IntegrityChecker.Server
                 throw new Exception("Backup failed, exiting...");
         }
         //TODO: rework without async because not needed anymore
-        public static async Task<string> Backup(string origin)
+        private static async Task<string> Backup(string origin)
         {
-            string folder = new Folder(origin).ExportJson();
+            var folder = new Folder(origin).ExportJson();
             Console.WriteLine("Sha1 generation finished");
             return folder;
         }
-        public void ReceiveResult(string folder)
+
+        private void ReceiveResult(string folder)
         {
             // RECEIVE: Folder packet (id2) (will allow to rebuild the folder via Loader.LoadJson
             var data = NetworkTcp.Receive(_client, Packet.Owner.Server, 2);
@@ -107,16 +110,16 @@ namespace IntegrityChecker.Server
             Folder original = null;
             Loader.LoadJson(folder, ref original);
             // sending the folders to a checker which will compute missing files &/ errors
-            Checker checker = new Checker(_origin, _origin, true){BackupFolder = f, OriginalFolder = original};
-            string result = checker.CheckFolders();
-            int errors = checker.Errors;
+            var checker = new Checker(_origin, _origin, true){BackupFolder = f, OriginalFolder = original};
+            var result = checker.CheckFolders();
+            var errors = checker.Errors;
             // SEND: Status Ok packet to warn client that the process is done (id11)
             NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Server, 11);
             
             // Waiting for client to be ready
             while (true)
             {
-                string status = NetworkTcp.Receive(_client, Packet.Owner.Server, 3);
+                var status = NetworkTcp.Receive(_client, Packet.Owner.Server, 3);
                 if (JsonSerializer.Deserialize<Status>(status) == Status.Ok)
                     break;
             }
@@ -124,10 +127,10 @@ namespace IntegrityChecker.Server
 
         }
 
-        public void SendResults(int errors, string result)
+        private void SendResults(int errors, string result)
         {
             // errors and result are sent via json using a parameterless constructor class (see documentation on JsonSerializer.Deserialize)
-            Result resultF = new Result {ErrorCount = errors, ErrorMessage = result};
+            var resultF = new Result {ErrorCount = errors, ErrorMessage = result};
             NetworkTcp.SendObject(_client, resultF, Packet.Owner.Server, 12);
             
             //POST PROCESS | Make sure that client receives the packet
