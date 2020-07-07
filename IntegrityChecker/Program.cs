@@ -37,37 +37,62 @@ namespace IntegrityChecker
         Menu: 1 to export a folder SHA1 
         2 to get the SHA1 value of a file";
             Console.WriteLine(welcome);
-            int option = Convert.ToInt32(Console.ReadLine());
-            switch (option)
+            try
             {
-                case 1:
-                    Console.Write("Option 1 selected \n"+"Enter the path to export: ");
-                    string path = Console.ReadLine();
-                    new Folder(path).ExportJson();
-                    break;
-                case 2:
-                    Console.Write("Option 2 selected, please enter file's path: ");
-                    string file = Console.ReadLine();
-                    Console.WriteLine(new FileSum(file).Sum);
-                    break;
-                case 3:
-                    Console.Write("Option 3, enter the original exported file's path: ");
-                    string path1 = Console.ReadLine();
-                    Console.Write("Enter the new exported file: ");
-                    string path2 = Console.ReadLine();
-                    new Checker(path1, path2).CheckFolders();
-                    break;
-                case 10:
-                    Server.Server s = new Server.Server();
-                    break;
-                case 11:
-                    new Client.Client().Init();
-                    break;
-                default:
-                    Console.Clear();
-                    Console.WriteLine("Invalid input");
-                    Interface();
-                    return;
+                int option = Convert.ToInt32(Console.ReadLine());
+                switch (option)
+                {
+                    case 1:
+                        Console.Write("Option 1 selected \n" + "Enter the path to export: ");
+                        string path = Console.ReadLine();
+                        new Folder(path).ExportJson();
+                        break;
+                    case 2:
+                        Console.Write("Option 2 selected, please enter file's path: ");
+                        string file = Console.ReadLine();
+                        Console.WriteLine(new FileSum(file).Sum);
+                        break;
+                    case 3:
+                        Console.Write("Option 3, enter the original exported file's path: ");
+                        string path1 = Console.ReadLine();
+                        Console.Write("Enter the new exported file: ");
+                        string path2 = Console.ReadLine();
+                        new Checker(path1, path2).CheckFolders();
+                        break;
+                    case 10:
+                        Console.WriteLine("Server mode activated! Enter the path to work on please: ");
+                        string origin = Console.ReadLine();
+                        if (!Directory.Exists(origin))
+                        {
+                            //break;
+                        }
+                        Server.Server s = new Server.Server(origin);
+                        break;
+                    case 11:
+                        Console.WriteLine("Client mode activated! Enter the path to work on please: ");
+                        string originBackup = Console.ReadLine();
+                        if (!Directory.Exists(originBackup))
+                        {
+                            //break;
+                        }
+                        Client.Client client = new Client.Client(originBackup);
+                        break;
+                    default:
+                        Console.Clear();
+                        Console.WriteLine("Invalid input");
+                        Interface();
+                        return;
+                }
+            }
+            catch (FormatException)
+            {
+                Console.Clear();
+                Console.WriteLine("Invalid input");
+                Interface();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("There was an error: \n"+e.Message);
             }
 
             Console.ReadKey();
@@ -88,6 +113,19 @@ namespace IntegrityChecker
                     i++;
                 }
             }
+        }
+
+        public static void Cmanual()
+        {
+            string path_legacy = @"C:\Users\Shadow\RiderProjects\IntegrityChecker\BackupChecker\IntegrityChecker\bin\Release\netcoreapp3.1\Export - Clannad [BluRay&DVD x264-Hi10P FLAC] mardi 7 juillet 2020.sha1";
+            string path_json = @"C:\Users\Shadow\RiderProjects\IntegrityChecker\BackupChecker\IntegrityChecker\bin\Release\netcoreapp3.1\Export - Clannad [BluRay&DVD x264-Hi10P FLAC] mardi 7 juillet 2020.json";
+            Folder folder = Loader.LoadViaFile(path_legacy);
+            Folder original = null;
+            Loader.LoadJson(File.ReadAllText(path_json), ref original);
+            Loaders.Checker ch = new Checker("","", true);
+            ch.BackupFolder = folder;
+            ch.OriginalFolder = original;
+            ch.CheckFolders();
         }
     }
 }
