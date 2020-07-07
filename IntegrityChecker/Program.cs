@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using IntegrityChecker.Client;
 using IntegrityChecker.DataTypes;
 using IntegrityChecker.Loaders;
+using IntegrityChecker.Server;
 
 namespace IntegrityChecker
 {
@@ -23,10 +25,22 @@ namespace IntegrityChecker
 
                     //     
                     // }
-                    Interface();
+                    //Interface();
                     //Console.WriteLine(JsonSerializer.Serialize(new List<string>() {"0", ""}));
                     //Folder f = null;
-                    //Loader.LoadJson(File.ReadAllText(@"C:\Users\Shadow\RiderProjects\IntegrityChecker\BackupChecker\IntegrityChecker\bin\Debug\netcoreapp3.1\Export - [Nemuri] Violet Evergarden ヴァイオレット・エヴァーガーデン (2018-2020) [FLAC] lundi 6 juillet 2020.json"), ref f);
+         
+            //Loader.LoadJson(File.ReadAllText(@"C:\Users\Shadow\RiderProjects\IntegrityChecker\BackupChecker\IntegrityChecker\bin\Debug\netcoreapp3.1\Export - [Nemuri] Violet Evergarden ヴァイオレット・エヴァーガーデン (2018-2020) [FLAC] lundi 6 juillet 2020.json"), ref f);
+            string a = Console.ReadLine();
+            Console.Clear();
+            switch (a)
+            {
+                case "0":
+                    new ServerTcp("").Init();
+                    break;
+                case "1":
+                    new ClientTcp("").Init();
+                    break;
+            }
         }
 
         public static void Interface()
