@@ -11,11 +11,11 @@ using IntegrityChecker.Server;
 
 namespace IntegrityChecker
 {
-    class Program
+    static class Program
     {
+        public const Logger.Type type = Logger.Type.Ok;
         static void Main(string[] args)
         {
-            new Logger(Directory.GetCurrentDirectory()).Log(Logger.Type.Ok, "");
             Interface();
         }
 
@@ -33,6 +33,7 @@ namespace IntegrityChecker
 
         Useful information: the port used to do the remote check is 11000, make sure that it is opened on your desktop or router";
             Console.WriteLine(welcome);
+            Logger.Instance.Log(Logger.Type.Ok, "Program initialized!");
             try
             {
                 // Settings to support all filenames
@@ -82,6 +83,7 @@ namespace IntegrityChecker
                         var clientTcp = new ClientTcp(originBackup, remoteIp);
                         break;
                     case 10:
+                        Logger.Instance.CheckOut();
                         Environment.Exit(0);
                         break;
                     default:
@@ -99,6 +101,7 @@ namespace IntegrityChecker
             }
             catch (Exception e)
             {
+                Logger.Instance.CheckOut();
                 throw new Exception("There was an error: \n"+e.Message+"\n Exiting...");
                 //throw;
             }

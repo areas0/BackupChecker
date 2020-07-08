@@ -31,6 +31,7 @@ namespace IntegrityChecker.Client
 
         private void Init()
         {
+            Logger.Instance.Log(Logger.Type.Ok, "Client initialization started");
             try
             {
                 var port = ServerTcp.Port;
@@ -38,9 +39,11 @@ namespace IntegrityChecker.Client
             }
             catch (Exception e)
             {
-                _client.Close();
+                _client?.Close();
+                Logger.Instance.Log(Logger.Type.Error, $"Client initialization failed: ip {_ip} \n {e.Message} \n {e.StackTrace}");
                 throw new Exception("Client init failed, please check your parameters and network \n"+e);
             }
+            Logger.Instance.Log(Logger.Type.Ok, "Client initialization finished");
             ReceiveBackupCommand();
         }
 
@@ -54,7 +57,8 @@ namespace IntegrityChecker.Client
             else
             {
                 NetworkTcp.SendObject(_client, Status.Error, Packet.Owner.Client, 0);
-                //client.Close();
+                _client.Close();
+                Logger.Instance.Log(Logger.Type.Error, $"ReceiveBackup command failed: origin differs \n Original: {task.OriginName} \n Backup: {_originName}");
                 throw new Exception("Backup init failed, exiting...");
             }
 
@@ -75,7 +79,7 @@ namespace IntegrityChecker.Client
             }
         }
 
-        private async void Backup()
+        private void Backup()
         {
             var folder = Backup(_originPath);
             //if(!backup.IsCompleted)

@@ -32,12 +32,15 @@ namespace IntegrityChecker.Checkers
                 return;
             if (!Directory.Exists(path))
             {
+                Logger.Instance.Log(Logger.Type.Error, $"Folder constructor: 404 directory not found at {path}");
                 throw new ArgumentException("Integrity checker: init failed");
             }
-            
+            Logger.Instance.Log(Logger.Type.Ok, "Folder: started loading the folder");
             LoadFolder(path);
-            Console.WriteLine("All files successfully found");
+            Logger.Instance.Log(Logger.Type.Ok, "Folder: Files found");
+            Console.WriteLine("All files successfully found, starting generation of hashes");
             Generate();
+            Logger.Instance.Log(Logger.Type.Ok, "Folder: generation finished");
             Console.WriteLine("All SHA1 were generated");
             
             var directoryInfo = new DirectoryInfo(_path);
@@ -105,9 +108,17 @@ namespace IntegrityChecker.Checkers
             
             //Creating a file with json data in it
             var filename = $"Export - {name} {DateTime.Today.Date.ToLongDateString()}.json";
-            File.Create(filename).Close();
-            File.WriteAllText(filename, jsonString);
-            
+            try
+            {
+                File.Create(filename).Close();
+                File.WriteAllText(filename, jsonString);
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Log(Logger.Type.Error, $"ExportJson failed: file writing failed, make sure you have the appropriate rights");
+                throw;
+            }
+            Logger.Instance.Log(Logger.Type.Ok, $"ExportJson: successfully exported to {filename}");
             Console.WriteLine("Exported to "+filename);
             return jsonString;
 

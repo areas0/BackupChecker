@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using IntegrityChecker.DataTypes;
+using IntegrityChecker.Scheduler;
 
 namespace IntegrityChecker.Backend
 {
@@ -14,6 +15,7 @@ namespace IntegrityChecker.Backend
         public static string Receive(TcpClient client, Packet.Owner owner, int expectedId)
         {
             var data = "";
+            Logger.Instance.Log(Logger.Type.Ok, $"Receive owner: {owner} expectedId: {expectedId}");
             try
             {
                 // maximum size of message, large size is chosen for the moment
@@ -37,12 +39,16 @@ namespace IntegrityChecker.Backend
                             continue;
 
                         if (packet.OwnerT != owner)
+                        {
+                            Logger.Instance.Log(Logger.Type.Ok, $"Received a packet owner: {packet.OwnerT} Id: {packet.Id} data: {packet.Message}");
                             return packet.Message;
+                        }
                     }
                 }
             }
             catch (Exception e)
             {
+                Logger.Instance.Log(Logger.Type.Error, $"Receive: owner: {owner} expectedId: {expectedId} data: {data}");
                 throw new Exception("Receiver failed to receive data, last piece of data : "+data+"\n"+e.Message);
             }
         }
@@ -70,6 +76,9 @@ namespace IntegrityChecker.Backend
                     last = packet;
             }
             //Console.WriteLine($"Last: {last?.Id}");
+            Logger.Instance.Log(Logger.Type.Ok,
+                $"Find packet: returned value is {(last is null ? "Empty" : last.Message)} " +
+                $"id: {(last is null ? "None" : Convert.ToString(last.Id))}");
             return last;
         }
         
@@ -92,13 +101,24 @@ namespace IntegrityChecker.Backend
             }
             catch (Exception e)
             {
+                Logger.Instance.Log(Logger.Type.Error, $"SendViaClient failed, owner: {owner} Id: {id} Message: {message}");
                 throw new Exception("Sender failed \n "+e);
             }
         }
 
         public static void SendObject(TcpClient client, object obj, Packet.Owner owner, int id)
         {
-            SendViaClient(client, JsonSerializer.Serialize(obj), owner, id);
+            try
+            {
+                var message = JsonSerializer.Serialize(obj);
+                Logger.Instance.Log(Logger.Type.Ok, $"SendObject failed, owner: {owner} Id: {id} Message: {message}");
+                SendViaClient(client, message, owner, id);
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Log(Logger.Type.Error, $"SendObject failed: Exception raised: {e.StackTrace} {e.Message}");
+                throw;
+            }
         }
 
 /*
@@ -118,6 +138,7 @@ namespace IntegrityChecker.Backend
         public static void Disconnect(TcpClient client)
         {
             client.GetStream().Close();
+            Logger.Instance.Log(Logger.Type.Ok, "Successfully disconnected client");
         }
     }
 }

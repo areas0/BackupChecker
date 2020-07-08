@@ -3,7 +3,7 @@ using System.IO;
 
 namespace IntegrityChecker
 {
-    public class Logger
+    public sealed class Logger
     {
         public enum Type
         {
@@ -15,6 +15,22 @@ namespace IntegrityChecker
         private string _data;
         private Type _debugLevel;
         private bool _initFailed;
+        private static Logger instance = null;
+        private static readonly object padlock = new object();
+        public static Logger Instance
+        {
+            get
+            {
+                lock (padlock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new Logger(Directory.GetCurrentDirectory(), Program.type);
+                    }
+                    return instance;
+                }
+            }
+        }
         public Logger(string path, Type debugLevel = Type.Ok)
         {
             _path = path+"\\last.log";
@@ -46,7 +62,7 @@ namespace IntegrityChecker
             switch (type)
             {
                 case Type.Ok:
-                    finalData += " Pass :" + message;
+                    finalData += " Pass : " + message;
                     break;
                 case Type.Warning:
                     finalData += " Warning: " + message;

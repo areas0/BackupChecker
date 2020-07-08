@@ -31,7 +31,10 @@ namespace IntegrityChecker.Checkers
             if (File.Exists(path))
                 _sum = CalculateSha256();
             else
+            {
+                Logger.Instance.Log(Logger.Type.Error, $"FileSum constructor: missing file at {path}");
                 throw new ArgumentException("File does not exist");
+            }
         }
 
 /*    Unused function
