@@ -14,6 +14,7 @@ namespace IntegrityChecker
     static class Program
     {
         public const Logger.Type type = Logger.Type.Ok;
+        public const string version = "V0.6";
         static void Main(string[] args)
         {
             Interface();
@@ -24,12 +25,13 @@ namespace IntegrityChecker
             const string welcome = @"=====================================================
         Welcome to integrity checker V0.6b
 
-        Menu: 1 to export a folder SHA1 
-        2 to get the SHA1 value of a file
-        3 to check already exported folders
-        4 (network) Begin a remote check (server)
-        5 (network) Connect to a remote check session (only if server is already online)
-        10 Exit the program
+Menu: 
+1 to export a folder SHA1 
+2 to get the SHA1 value of a file
+3 to check already exported folders
+4 (network) Begin a remote check (server)
+5 (network) Connect to a remote check session (only if server is already online)
+10 Exit the program
 
         Useful information: the port used to do the remote check is 11000, make sure that it is opened on your desktop or router";
             Console.WriteLine(welcome);
@@ -39,7 +41,7 @@ namespace IntegrityChecker
                 // Settings to support all filenames
                 Console.OutputEncoding = Encoding.Unicode;
                 Console.InputEncoding = Encoding.Unicode;
-                
+                Console.Title = "Integrity Checker " + version;
                 var option = Convert.ToInt32(Console.ReadLine());
                 switch (option)
                 {

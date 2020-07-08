@@ -47,6 +47,7 @@ namespace IntegrityChecker.Checkers
         }
 */
 
+/*
         private string CalculateSha1()
         {
             using var stream = File.OpenRead(_path);
@@ -57,6 +58,7 @@ namespace IntegrityChecker.Checkers
                 .Replace("-", string.Empty);
             return sendCheckSum;
         }
+*/
 
         private string CalculateSha256()
         {

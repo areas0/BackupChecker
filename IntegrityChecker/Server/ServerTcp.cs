@@ -31,11 +31,27 @@ namespace IntegrityChecker.Server
             _originName = directoryOrigin.Name;
             Init();
         }
+
+        private static string GetLocalIpAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            string ips = String.Empty;
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    ips += ip.ToString() +", ";
+                }
+            }
+
+            return ips;
+        }
         
         // Setup the server and launches the backup process
         private void Init()
         {
-            Logger.Instance.Log(Logger.Type.Ok, "Server - Init: Started initialization of server, waiting for clients");
+            string ip = GetLocalIpAddress();
+            Logger.Instance.Log(Logger.Type.Ok, $"Server - Init: Started initialization of server, waiting for clients ip: {ip}");
             _server = null;
             try
             {
@@ -46,6 +62,7 @@ namespace IntegrityChecker.Server
                 _server.Start();
                 while (true)
                 {
+                    Console.WriteLine($"IP(s): {ip}");
                     Console.Write("Waiting for a connection... ");
                     _client = _server.AcceptTcpClient();
                     Console.WriteLine("Connected!");
