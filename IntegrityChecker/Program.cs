@@ -4,15 +4,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using IntegrityChecker.Checkers;
 using IntegrityChecker.Client;
 using IntegrityChecker.DataTypes;
-using IntegrityChecker.Loaders;
 using IntegrityChecker.Server;
 
 namespace IntegrityChecker
 {
-    class Program
+    static class Program
     {
+        public const Logger.Type type = Logger.Type.Ok;
         static void Main(string[] args)
         {
             Interface();
@@ -21,17 +22,18 @@ namespace IntegrityChecker
         public static void Interface()
         {
             const string welcome = @"=====================================================
-        Welcome to integrity checker V0.5b
+        Welcome to integrity checker V0.6b
 
         Menu: 1 to export a folder SHA1 
         2 to get the SHA1 value of a file
         3 to check already exported folders
         4 (network) Begin a remote check (server)
-        5 (network) Connect to a remote check session (only if server is already online
+        5 (network) Connect to a remote check session (only if server is already online)
         10 Exit the program
 
         Useful information: the port used to do the remote check is 11000, make sure that it is opened on your desktop or router";
             Console.WriteLine(welcome);
+            Logger.Instance.Log(Logger.Type.Ok, "Program initialized!");
             try
             {
                 // Settings to support all filenames
@@ -81,6 +83,7 @@ namespace IntegrityChecker
                         var clientTcp = new ClientTcp(originBackup, remoteIp);
                         break;
                     case 10:
+                        Logger.Instance.CheckOut();
                         Environment.Exit(0);
                         break;
                     default:
@@ -98,6 +101,7 @@ namespace IntegrityChecker
             }
             catch (Exception e)
             {
+                Logger.Instance.CheckOut();
                 throw new Exception("There was an error: \n"+e.Message+"\n Exiting...");
                 //throw;
             }

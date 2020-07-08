@@ -1,4 +1,4 @@
-﻿using IntegrityChecker.Loaders;
+﻿using IntegrityChecker.Checkers;
 
 namespace IntegrityChecker.DataTypes
 {

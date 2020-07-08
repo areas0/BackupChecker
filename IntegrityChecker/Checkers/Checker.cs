@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using IntegrityChecker.DataTypes;
 
-namespace IntegrityChecker.Loaders
+namespace IntegrityChecker.Checkers
 {
     public class Checker
     {
@@ -36,12 +35,31 @@ namespace IntegrityChecker.Loaders
             //manual load case used for server purposes
             if (manual)
                 return;
+            string jsonString;
+            string jsonString2;
             //Loading the json files
-            var jsonString = File.ReadAllText(original);
-            var jsonString2 = File.ReadAllText(_backup);
-            // Deserialize the folders 
-            Loader.LoadJson(jsonString, ref _originalFolder);
-            Loader.LoadJson(jsonString2, ref _backupFolder);
+            try
+            {
+                jsonString = File.ReadAllText(original);
+                jsonString2 = File.ReadAllText(_backup);
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Log(Logger.Type.Error, $"Checker error: file reading of exported folders failed \n {e.Message} at {e.StackTrace}");
+                throw;
+            }
+
+            try
+            {
+                // Deserialize the folders 
+                Loader.LoadJson(jsonString, ref _originalFolder);
+                Loader.LoadJson(jsonString2, ref _backupFolder);
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Log(Logger.Type.Error, $"Checker error: load via json of exported folders failed \n {e.Message} at {e.StackTrace}");
+                throw;
+            }
         }
 
         public string CheckFolders()
@@ -51,6 +69,9 @@ namespace IntegrityChecker.Loaders
             {
                 Console.Error.WriteLine("Failure: {0} missing file(s)", _originalFolder.Sums.Count-_backupFolder.Sums.Count);
                 var message = MissingFile();
+                
+                Logger.Instance.Log(Logger.Type.Error,$"Failure: {_originalFolder.Sums.Count - _backupFolder.Sums.Count} missing file(s) \n {message}");
+                
                 return $"Failure: {_originalFolder.Sums.Count - _backupFolder.Sums.Count} missing file(s) \n {message}";
             }
 
@@ -67,7 +88,7 @@ namespace IntegrityChecker.Loaders
                 {
                     failures += "Sum: \n" +
                                 "New: " + _backupFolder.Sums[i].Path +" "+_backupFolder.Sums[i].Sum+
-                                " \nOriginal : " + _originalFolder.Sums[i].Path+" "+_originalFolder.Sums[i].Sum+"\n";
+                                "\nOriginal : " + _originalFolder.Sums[i].Path+" "+_originalFolder.Sums[i].Sum+"\n";
                     _errors++;
                 }
                 
@@ -75,7 +96,7 @@ namespace IntegrityChecker.Loaders
                 {
                     failures += "Path: \n" +
                                 "New: " + _backupFolder.Sums[i].Path +" "+_backupFolder.Sums[i].Sum+
-                                " \nOriginal : " + _originalFolder.Sums[i].Path+" "+_originalFolder.Sums[i].Sum+"\n";
+                                "\nOriginal : " + _originalFolder.Sums[i].Path+" "+_originalFolder.Sums[i].Sum+"\n";
                     _errors++;
                 }
             }
@@ -84,8 +105,10 @@ namespace IntegrityChecker.Loaders
             {
                 Console.WriteLine("Check succeeded, {0} error(s)", _errors);
                 Console.WriteLine(failures);
+                Logger.Instance.Log(Logger.Type.Error, $"CheckFolder found {_errors} error(s): \n Failures: {failures}");
                 return failures;
             }
+            Logger.Instance.Log(Logger.Type.Ok, $"Check succeeded, no errors");
             Console.WriteLine("Check succeeded, 0 error found.");
             return failures;
         }
@@ -120,7 +143,8 @@ namespace IntegrityChecker.Loaders
                     // ignored
                 }
             }
-
+            if(message != string.Empty)
+                Logger.Instance.Log(Logger.Type.Error, $"Missing files are: {message}");
             return message;
         }
     }

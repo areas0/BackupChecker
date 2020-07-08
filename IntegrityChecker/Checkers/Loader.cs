@@ -1,8 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text.Json;
 using IntegrityChecker.DataTypes;
 
-namespace IntegrityChecker.Loaders
+namespace IntegrityChecker.Checkers
 {
     public static class Loader
     {
@@ -40,7 +41,17 @@ namespace IntegrityChecker.Loaders
 
         public static void LoadJson(string jsonString, ref Folder folder)
         {
-            folder = JsonSerializer.Deserialize<ManualFolder>(jsonString).Export();
+            try
+            {
+                folder = JsonSerializer.Deserialize<ManualFolder>(jsonString).Export();
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Log(Logger.Type.Error, $"LoadJson failed: data failure: \n {jsonString} \n {e.Message} \n {e.StackTrace} ");
+                throw;
+            }
+
+            Logger.Instance.Log(Logger.Type.Ok, "Successfully loaded the folder");
         }
     }
 }
