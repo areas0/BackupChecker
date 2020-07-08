@@ -9,7 +9,7 @@ Tool available under V0.6 with basic features:
 - Check backup from 2 .json files from already exported folders in case remote failed
 - A full logger
 # BUGS
-It is buggy? Yes, sure, but most of the time it should work. Open an issue if needed, and don't hesitate to fix it yourself!
+It is buggy? It might be, sure, but most of the time it should work. Open an issue if needed with the log file (last.log), and don't hesitate to fix it yourself!
 
 # Why
 - Because I had time to spare
