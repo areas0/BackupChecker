@@ -2,7 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace IntegrityChecker.Loaders
+namespace IntegrityChecker.Checkers
 {
     public class FileSum
     {
@@ -29,7 +29,7 @@ namespace IntegrityChecker.Loaders
             if (manual)
                 return;
             if (File.Exists(path))
-                _sum = CalculateSha1();
+                _sum = CalculateSha256();
             else
                 throw new ArgumentException("File does not exist");
         }
@@ -53,6 +53,16 @@ namespace IntegrityChecker.Loaders
             var sendCheckSum = BitConverter.ToString(checksum)
                 .Replace("-", string.Empty);
             return sendCheckSum;
+        }
+
+        private string CalculateSha256()
+        {
+            using var stream = File.OpenRead(_path);
+            using var sha = new SHA256Managed();
+            var checksum = sha.ComputeHash(stream);
+            var sendChecksum = BitConverter.ToString(checksum).Replace("-", string.Empty);
+            return sendChecksum;
+
         }
     }
 }
