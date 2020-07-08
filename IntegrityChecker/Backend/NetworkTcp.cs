@@ -111,7 +111,7 @@ namespace IntegrityChecker.Backend
             try
             {
                 var message = JsonSerializer.Serialize(obj);
-                Logger.Instance.Log(Logger.Type.Ok, $"SendObject failed, owner: {owner} Id: {id} Message: {message}");
+                Logger.Instance.Log(Logger.Type.Ok, $"SendObject succeeded, owner: {owner} Id: {id} Message: {message}");
                 SendViaClient(client, message, owner, id);
             }
             catch (Exception e)

@@ -69,6 +69,7 @@ namespace IntegrityChecker.Client
                 case Tasks.Task.Backup:
                     Console.WriteLine("Starting backup now!");
                     Console.ReadKey();
+                    Logger.Instance.Log(Logger.Type.Ok, $"ReceiveBackup finished, starting backup");
                     Backup();
                     break;
                 // this case is a placeholder
@@ -94,7 +95,7 @@ namespace IntegrityChecker.Client
                     break;
                 }
             }
-
+            Logger.Instance.Log(Logger.Type.Ok, "Backup: finished on both clients");
             Console.WriteLine("Finished Sha1 generation on both clients...");
             ProceedResults(folder);
             
@@ -104,17 +105,20 @@ namespace IntegrityChecker.Client
         {
             var folder = new Folder(origin).ExportJson();
             Console.WriteLine("Sha1 generation finished");
+            Logger.Instance.Log(Logger.Type.Ok, $"Client - Backup: finished folder generation");
             return folder;
         }
 
         private void ProceedResults(string folder)
         {
+            Logger.Instance.Log(Logger.Type.Ok, "Client: Sending folder");
             NetworkTcp.SendViaClient(_client, folder, Packet.Owner.Client, 2);
             GetResults();
         }
 
         private void GetResults()
         {
+            Logger.Instance.Log(Logger.Type.Ok, "Client - GetResults: waiting for results");
             Console.Write("Waiting for results....");
             while (true)
             {
@@ -125,12 +129,19 @@ namespace IntegrityChecker.Client
             
             NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 3);
             var data = NetworkTcp.Receive(_client, Packet.Owner.Client, 12);
-
+            
+            Logger.Instance.Log(Logger.Type.Ok, "Client - GetResults: received results");
+            
             var resultSecond = data;
             var result = JsonSerializer.Deserialize<Result>(resultSecond);
-            Console.Write($"There was {result.ErrorCount} error(s). \n {result.ErrorMessage}");
+
+            var message = $"There was {result.ErrorCount} error(s). \n {result.ErrorMessage}";
+            Logger.Instance.Log(Logger.Type.Warning, message);
+            Console.Write(message);
             NetworkTcp.Disconnect(_client);
             _client.Close();
+            Logger.Instance.CheckOut();
+            Console.ReadKey();
         }
     }
 }

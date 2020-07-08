@@ -42,6 +42,10 @@ namespace IntegrityChecker
                 }
                 else
                 {
+                    if (File.Exists(path + "\\old.log"))
+                    {
+                        File.Delete(path + "\\old.log");
+                    }
                     File.Move(_path, path + "\\old.log");
                 }
             }
