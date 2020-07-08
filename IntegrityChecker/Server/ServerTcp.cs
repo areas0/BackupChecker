@@ -5,8 +5,8 @@ using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading.Tasks;
 using IntegrityChecker.Backend;
+using IntegrityChecker.Checkers;
 using IntegrityChecker.DataTypes;
-using IntegrityChecker.Loaders;
 using IntegrityChecker.Scheduler;
 
 namespace IntegrityChecker.Server
@@ -14,14 +14,17 @@ namespace IntegrityChecker.Server
     public class ServerTcp
     {
         public const int Port = 11000;
-        //private string _ip;
-        private readonly string _origin;
+        private readonly string _originName;
+        private readonly string _originPath;
         private TcpListener _server;
         private TcpClient _client;
         public ServerTcp(string origin, string ip="127.0.0.1")
         {
-            _origin = origin;
-            //_ip = ip;
+            if(!Directory.Exists(origin))
+                throw new ArgumentException("Server initialization failed: folder doesn't exist!");
+            DirectoryInfo directoryOrigin = new DirectoryInfo(origin);
+            _originPath = origin;
+            _originName = directoryOrigin.Name;
             Init();
         }
         
@@ -33,7 +36,6 @@ namespace IntegrityChecker.Server
             {
                 // Converts a string into an ip address for the program to launch the Tcp listener
                 // WARNING: if it is wrong the whole process will fail!
-                // ip = IPAddress.Parse(_ip);
                 _server = new TcpListener(IPAddress.Any, Port);
 
                 _server.Start();
@@ -56,7 +58,7 @@ namespace IntegrityChecker.Server
 
         private void SendBackupCommand()
         {
-            var task = new Tasks {OriginName = _origin, Current = Tasks.Task.Backup};
+            var task = new Tasks {OriginName = _originName, Current = Tasks.Task.Backup};
             
             // SEND: Packet of task (id 10)
             NetworkTcp.SendObject(_client, task, Packet.Owner.Server, 10);
@@ -74,10 +76,10 @@ namespace IntegrityChecker.Server
 
         private async void ExecuteBackup()
         {
-            var backup = Backup(_origin);
-            if(!backup.IsCompleted)
-                Console.WriteLine("Waiting for backup Sha1 generation to finish...");
-            var folder = await backup;
+            var folder = Backup(_originPath);
+            //if(!backup.IsCompleted)
+            //    Console.WriteLine("Waiting for backup Sha1 generation to finish...");
+            //var folder = await backup;
             //PACKETS priority high: confirm backup finished on both client
             // SEND: Status packet (id20) (synchronize with client)
             NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Server, 20);
@@ -91,7 +93,7 @@ namespace IntegrityChecker.Server
                 throw new Exception("Backup failed, exiting...");
         }
         //TODO: rework without async because not needed anymore
-        private static async Task<string> Backup(string origin)
+        private static string Backup(string origin)
         {
             var folder = new Folder(origin).ExportJson();
             Console.WriteLine("Sha1 generation finished");
@@ -110,7 +112,7 @@ namespace IntegrityChecker.Server
             Folder original = null;
             Loader.LoadJson(folder, ref original);
             // sending the folders to a checker which will compute missing files &/ errors
-            var checker = new Checker(_origin, _origin, true){BackupFolder = f, OriginalFolder = original};
+            var checker = new Checker(_originPath, _originPath, true){BackupFolder = f, OriginalFolder = original};
             var result = checker.CheckFolders();
             var errors = checker.Errors;
             // SEND: Status Ok packet to warn client that the process is done (id11)

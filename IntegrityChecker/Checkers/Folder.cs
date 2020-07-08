@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-namespace IntegrityChecker.Loaders
+namespace IntegrityChecker.Checkers
 {
     public class Folder
     {

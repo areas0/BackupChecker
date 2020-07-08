@@ -5,8 +5,8 @@ using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading.Tasks;
 using IntegrityChecker.Backend;
+using IntegrityChecker.Checkers;
 using IntegrityChecker.DataTypes;
-using IntegrityChecker.Loaders;
 using IntegrityChecker.Scheduler;
 using IntegrityChecker.Server;
 
@@ -15,11 +15,16 @@ namespace IntegrityChecker.Client
     public class ClientTcp
     {
         private TcpClient _client;
-        private readonly string _origin;
+        private readonly string _originName;
+        private readonly string _originPath;
         private readonly string _ip;
         public ClientTcp(string origin, string ip = "127.0.0.1")
         {
-            _origin = origin;
+            if(!Directory.Exists(origin))
+                throw new ArgumentException("Client initialization failed: folder doesn't exist!");
+            DirectoryInfo directoryOrigin = new DirectoryInfo(origin);
+            _originPath = origin;
+            _originName = directoryOrigin.Name;
             _ip = ip;
             Init();
         }
@@ -31,10 +36,10 @@ namespace IntegrityChecker.Client
                 var port = ServerTcp.Port;
                 _client = new TcpClient(_ip, port);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 _client.Close();
-                throw;
+                throw new Exception("Client init failed, please check your parameters and network \n"+e);
             }
             ReceiveBackupCommand();
         }
@@ -44,7 +49,7 @@ namespace IntegrityChecker.Client
             var message = NetworkTcp.Receive(_client, Packet.Owner.Client, 10);
             var task = JsonSerializer.Deserialize<Tasks>(message);
             
-            if (task.OriginName == _origin)
+            if (task.OriginName == _originName)
                 NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 0);
             else
             {
@@ -56,12 +61,13 @@ namespace IntegrityChecker.Client
             switch (task.Current)
             {
                 case Tasks.Task.Original:
-                    throw new InvalidDataException("Client cannot be original folder!");
+                    throw new InvalidDataException("Client must be the backup folder!");
                 case Tasks.Task.Backup:
                     Console.WriteLine("Starting backup now!");
                     Console.ReadKey();
                     Backup();
                     break;
+                // this case is a placeholder
                 case Tasks.Task.Compare:
                     throw new InvalidDataException("Client cannot do the comparision!");
                 default:
@@ -71,10 +77,10 @@ namespace IntegrityChecker.Client
 
         private async void Backup()
         {
-            var backup = Backup(_origin);
-            if(!backup.IsCompleted)
-                Console.WriteLine("Waiting for backup Sha1 generation to finish...");
-            var folder = await backup;
+            var folder = Backup(_originPath);
+            //if(!backup.IsCompleted)
+            //    Console.WriteLine("Waiting for backup Sha1 generation to finish...");
+            //var folder = await backup;
             while (true)
             {
                 NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 1);
@@ -90,7 +96,7 @@ namespace IntegrityChecker.Client
             
         }
 
-        private static async Task<string> Backup(string origin)
+        private static string Backup(string origin)
         {
             var folder = new Folder(origin).ExportJson();
             Console.WriteLine("Sha1 generation finished");

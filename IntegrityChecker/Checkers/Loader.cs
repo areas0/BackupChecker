@@ -2,7 +2,7 @@
 using System.Text.Json;
 using IntegrityChecker.DataTypes;
 
-namespace IntegrityChecker.Loaders
+namespace IntegrityChecker.Checkers
 {
     public static class Loader
     {

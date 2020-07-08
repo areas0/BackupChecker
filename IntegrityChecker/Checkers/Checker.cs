@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using IntegrityChecker.DataTypes;
 
-namespace IntegrityChecker.Loaders
+namespace IntegrityChecker.Checkers
 {
     public class Checker
     {
