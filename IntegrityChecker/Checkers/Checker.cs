@@ -17,7 +17,7 @@ namespace IntegrityChecker.Checkers
         private string Original;
         private Folder _backupFolder = null;
         private int _errors = 0;
-
+        public string Message = string.Empty;
         public int Errors => _errors;
 
         public Folder BackupFolder
@@ -31,7 +31,8 @@ namespace IntegrityChecker.Checkers
             // setting up paths (unused)
             Original = original;
             _backup = backup;
-            
+            this.Message = Message;
+
             //manual load case used for server purposes
             if (manual)
                 return;
@@ -69,7 +70,7 @@ namespace IntegrityChecker.Checkers
             {
                 Console.Error.WriteLine("Failure: {0} missing file(s)", _originalFolder.Sums.Count-_backupFolder.Sums.Count);
                 var message = MissingFile();
-                
+                _backup += message;
                 Logger.Instance.Log(Logger.Type.Error,$"Failure: {_originalFolder.Sums.Count - _backupFolder.Sums.Count} missing file(s) \n {message}");
                 
                 return $"Failure: {_originalFolder.Sums.Count - _backupFolder.Sums.Count} missing file(s) \n {message}";
@@ -100,7 +101,7 @@ namespace IntegrityChecker.Checkers
                     _errors++;
                 }
             }
-
+            _backup += failures;
             if (failures != string.Empty)
             {
                 Console.WriteLine("Check succeeded, {0} error(s)", _errors);
@@ -113,7 +114,7 @@ namespace IntegrityChecker.Checkers
             return failures;
         }
 
-        private string MissingFile()
+        public string MissingFile()
         {
             var message = "";
             for (var i = 0; i < _originalFolder.Sums.Count; i++)

@@ -15,11 +15,11 @@ namespace IntegrityChecker.Backend
         public static string Receive(TcpClient client, Packet.Owner owner, int expectedId)
         {
             var data = "";
-            Logger.Instance.Log(Logger.Type.Ok, $"Receive owner: {owner} expectedId: {expectedId}");
+            Logger.Instance.Log(Logger.Type.Ok, $"Receiver started: owner: {owner} expectedId: {expectedId}");
             try
             {
                 // maximum size of message, large size is chosen for the moment
-                var bytes = new byte[1048576];
+                var bytes = new byte[1048576*2*2*2*2*2];
                 while (true)
                 {
                     // Get a stream object for reading and writing
@@ -55,18 +55,29 @@ namespace IntegrityChecker.Backend
 
         private static Packet FindPacket(string message, int id)
         {
+            Logger.Instance.Log(Logger.Type.Ok, $"Current stream: {message} with id {id}");
             var messages = new List<string>();
-            var data = "";
-            foreach (var t in message)
+            //var data = "";
+            // foreach (var t in message)
+            // {
+            //     if (t != '\0')
+            //         data += t;
+            //     else
+            //     {
+            //         messages.Add(data);
+            //         data = "";
+            //     }
+            // }
+            for (var i = 0; i < message.Length; i++)
             {
-                if (t != '\0')
-                    data += t;
-                else
-                {
-                    messages.Add(data);
-                    data = "";
-                }
+                var j = i;
+                // if LastIndexOf returns -1 it means that there are no more packet in the message
+                if (message.LastIndexOf('\0') == -1)
+                    break;
+                i = message.LastIndexOf('\0');
+                messages.Add(message.Substring(j, i-j));
             }
+            Logger.Instance.Log(Logger.Type.Ok,$"Current data {messages[0]}");
 
             Packet last = null;
             foreach (var t in messages)
@@ -87,11 +98,11 @@ namespace IntegrityChecker.Backend
         {
             try
             {
+                Logger.Instance.Log(Logger.Type.Ok, $"SendObject started, owner: {owner} Id: {id} Message: {message}");
                 var packet = new Packet() {Id = id, Message = message, OwnerT = owner};
-                var data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(packet) + "\0");
+                var data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(packet) + "\0"); // \0 is used as a message delimiter 
 
                 // Get a client stream for reading and writing.
-                //  Stream stream = client.GetStream();
 
                 var stream = client.GetStream();
 
@@ -111,8 +122,8 @@ namespace IntegrityChecker.Backend
             try
             {
                 var message = JsonSerializer.Serialize(obj);
-                Logger.Instance.Log(Logger.Type.Ok, $"SendObject succeeded, owner: {owner} Id: {id} Message: {message}");
                 SendViaClient(client, message, owner, id);
+                Logger.Instance.Log(Logger.Type.Ok, $"SendObject succeeded, owner: {owner} Id: {id} Message: {message}");
             }
             catch (Exception e)
             {
