@@ -60,7 +60,7 @@ namespace IntegrityChecker
         public void Log(Type type, string message, Exception exception = null)
         {
             var hm = DateTime.Now;
-            string finalData = $"<{hm.ToString()}>";
+            var finalData = $"<{hm.ToString()}>";
             if (type < _debugLevel)
                 return;
             switch (type)

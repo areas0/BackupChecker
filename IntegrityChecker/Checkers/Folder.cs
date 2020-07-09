@@ -25,7 +25,7 @@ namespace IntegrityChecker.Checkers
 
         public string Path => _path;
 
-        public Folder(string path ="", bool manual = false)
+        public Folder(string path ="", bool manual = false, bool onlyPath = false)
         {
             _path = path;
             if (manual)
@@ -38,6 +38,8 @@ namespace IntegrityChecker.Checkers
             Logger.Instance.Log(Logger.Type.Ok, "Folder: started loading the folder");
             LoadFolder(path);
             Logger.Instance.Log(Logger.Type.Ok, "Folder: Files found");
+            if (onlyPath)
+                return;
             Console.WriteLine("All files successfully found, starting generation of hashes");
             Generate();
             Logger.Instance.Log(Logger.Type.Ok, "Folder: generation finished");

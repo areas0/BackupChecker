@@ -7,6 +7,7 @@ using System.Text.Json;
 using IntegrityChecker.Checkers;
 using IntegrityChecker.Client;
 using IntegrityChecker.DataTypes;
+using IntegrityChecker.Scheduler;
 using IntegrityChecker.Server;
 
 namespace IntegrityChecker
@@ -14,7 +15,7 @@ namespace IntegrityChecker
     static class Program
     {
         public const Logger.Type type = Logger.Type.Ok;
-        public const string version = "V0.6";
+        public const string version = "V0.7b";
         static void Main(string[] args)
         {
             Interface();
@@ -63,26 +64,20 @@ Menu:
                         new Checker(path1, path2).CheckFolders();
                         break;
                     case 4:
-                        Console.WriteLine("Server mode activated! Enter the path to work on please: ");
-                        var origin = Console.ReadLine();
-                        if (!Directory.Exists(origin))
-                        {
-                            //break;
-                        }
-                        //Console.WriteLine("Enter an ip to connect to (default is localhost) :");
-                        //var ip = Console.ReadLine();
-                        var s = new ServerTcp(origin);
+                        new Interface(Tasks.Task.Original);
+                        Interface();
                         break;
                     case 5:
-                        Console.WriteLine("Client mode activated! Enter the path to work on please: ");
-                        var originBackup = Console.ReadLine();
-                        if (!Directory.Exists(originBackup))
-                        {
-                            //break;
-                        }
-                        Console.WriteLine("Enter an ip to connect to (default is localhost) :");
-                        var remoteIp = Console.ReadLine();
-                        var clientTcp = new ClientTcp(originBackup, remoteIp);
+                        new Interface(Tasks.Task.Backup);
+                        Interface();
+                        break;
+                    case 6:
+                        new Interface(Tasks.Task.CompareFileList);
+                        Interface();
+                        break;
+                    case 7:
+                        new Interface(Tasks.Task.FileList);
+                        Interface();
                         break;
                     case 10:
                         Logger.Instance.CheckOut();
@@ -104,7 +99,7 @@ Menu:
             catch (Exception e)
             {
                 Logger.Instance.CheckOut();
-                throw new Exception("There was an error: \n"+e.Message+"\n Exiting...");
+                throw new Exception("There was an error: \n"+e.Message+"\n Exiting... "+e.StackTrace);
                 //throw;
             }
 

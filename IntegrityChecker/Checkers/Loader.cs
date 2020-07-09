@@ -7,6 +7,8 @@ namespace IntegrityChecker.Checkers
 {
     public static class Loader
     {
+        // Deprecated load via file with old format
+/*
         public static Folder LoadViaFile(string path)
         {
             if (!File.Exists(path))
@@ -38,7 +40,8 @@ namespace IntegrityChecker.Checkers
 
             return folder;
         }
-
+*/
+        // Load via json format the folder
         public static void LoadJson(string jsonString, ref Folder folder)
         {
             try
