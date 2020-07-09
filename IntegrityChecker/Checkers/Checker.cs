@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace IntegrityChecker.Checkers
 {
@@ -15,8 +16,8 @@ namespace IntegrityChecker.Checkers
 
         private string _backup;
         private string Original;
-        private Folder _backupFolder = null;
-        private int _errors = 0;
+        private Folder _backupFolder;
+        private int _errors;
         public string Message = string.Empty;
         public int Errors => _errors;
 
@@ -31,7 +32,6 @@ namespace IntegrityChecker.Checkers
             // setting up paths (unused)
             Original = original;
             _backup = backup;
-            this.Message = Message;
 
             //manual load case used for server purposes
             if (manual)
@@ -78,12 +78,13 @@ namespace IntegrityChecker.Checkers
 
             var failures = "";
             var sumsCount = _backupFolder.Sums.Count;
+            Console.WriteLine("Starting to make report...");
             for (var i = 0; i < sumsCount; i++)
             {
-                Console.Clear();
-                var completion = (int) ((i + 1) /(float) sumsCount * 100f);
-                Console.WriteLine("Generating report...");
-                Console.WriteLine($"Completion: {completion}%");
+                // Console.Clear();
+                // var completion = (int) ((i + 1) /(float) sumsCount * 100f);
+                // Console.WriteLine("Generating report...");
+                // Console.WriteLine($"Completion: {completion}%");
                 
                 if ( _backupFolder.Sums[i].Sum != _originalFolder.Sums[i].Sum)
                 {
@@ -93,13 +94,13 @@ namespace IntegrityChecker.Checkers
                     _errors++;
                 }
                 
-                if (_backupFolder.Sums[i].Path != _originalFolder.Sums[i].Path)
-                {
-                    failures += "Path: \n" +
-                                "New: " + _backupFolder.Sums[i].Path +" "+_backupFolder.Sums[i].Sum+
-                                "\nOriginal : " + _originalFolder.Sums[i].Path+" "+_originalFolder.Sums[i].Sum+"\n";
-                    _errors++;
-                }
+                // if (_backupFolder.Sums[i].Path != _originalFolder.Sums[i].Path)
+                // {
+                //     failures += "Path: \n" +
+                //                 "New: " + _backupFolder.Sums[i].Path +" "+_backupFolder.Sums[i].Sum+
+                //                 "\nOriginal : " + _originalFolder.Sums[i].Path+" "+_originalFolder.Sums[i].Sum+"\n";
+                //     _errors++;
+                // }
             }
             _backup += failures;
             if (failures != string.Empty)
@@ -124,12 +125,9 @@ namespace IntegrityChecker.Checkers
                     if (_backupFolder.Sums[i].Path != _originalFolder.Sums[i].Path)
                     {
                         var found = false;
-                        for (var j = 0; j < _backupFolder.Sums.Count; j++)
+                        foreach (var t in _backupFolder.Sums.Where(t => _originalFolder.Sums[i].Path == t.Path))
                         {
-                            if (_originalFolder.Sums[i].Path == _backupFolder.Sums[j].Path)
-                            {
-                                found = true;
-                            }
+                            found = true;
                         }
 
                         if (found)
@@ -144,7 +142,7 @@ namespace IntegrityChecker.Checkers
                     // ignored
                 }
             }
-            if(message != string.Empty)
+            if (message != string.Empty)
                 Logger.Instance.Log(Logger.Type.Error, $"Missing files are: {message}");
             return message;
         }

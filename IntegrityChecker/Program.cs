@@ -14,8 +14,8 @@ namespace IntegrityChecker
 {
     static class Program
     {
-        public const Logger.Type type = Logger.Type.Ok;
-        public const string version = "V0.7b";
+        public const Logger.Type Type = Logger.Type.Ok;
+        public const string Version = "V0.7b";
         static void Main(string[] args)
         {
             Interface();
@@ -24,7 +24,7 @@ namespace IntegrityChecker
         public static void Interface()
         {
             const string welcome = @"=====================================================
-        Welcome to integrity checker V0.6b
+        Welcome to integrity checker V0.7b
 
 Menu: 
 1 to export a folder SHA1 
@@ -44,7 +44,7 @@ Menu:
                 // Settings to support all filenames
                 Console.OutputEncoding = Encoding.Unicode;
                 Console.InputEncoding = Encoding.Unicode;
-                Console.Title = "Integrity Checker " + version;
+                Console.Title = "Integrity Checker " + Version;
                 var option = Convert.ToInt32(Console.ReadLine());
                 switch (option)
                 {

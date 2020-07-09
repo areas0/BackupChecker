@@ -27,7 +27,7 @@ namespace IntegrityChecker
                     if (instance == null)
                     {
                         // if the logger is not initialized we create a new object
-                        instance = new Logger(Directory.GetCurrentDirectory(), Program.type);
+                        instance = new Logger(Directory.GetCurrentDirectory(), Program.Type);
                     }
                     return instance;
                 }
