@@ -1,4 +1,4 @@
-name: Build pre-check
+name: Build (windows)
 
 on:
   push:
