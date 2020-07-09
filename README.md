@@ -1,6 +1,6 @@
 # BackupChecker
-Tool via network (or local) that does an integrity check for backups in C# using SHA1 hashes. 
-.Net Core (latest version) is required!
+Tool via network (or local) that does an integrity check for backups in C# using SHA256 hashes. 
+.Net Core (latest version) is required! Made for windows, can be adapted to fit linux environment.
 # Features
 Tool available under V0.7 with basic features:
 - Find the sha256 of a file
