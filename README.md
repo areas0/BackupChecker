@@ -2,10 +2,10 @@
 Tool via network (or local) that does an integrity check for backups in C# using SHA1 hashes. 
 .Net Core (latest version) is required!
 # Features
-Tool available under V0.6 with basic features:
+Tool available under V0.7 with basic features:
 - Find the sha256 of a file
 - Generate all files' sha256 in a folder and export it to a file (.json)
-- Do a remote checkup between computers over network using Tcp networking
+- Do a remote checkup between computers over network using Tcp networking: check if any file is missing and then check the data inside
 - Check backup from 2 .json files from already exported folders in case remote failed
 - A full logger
 # BUGS
