@@ -1,3 +1,4 @@
+![Build pre-check](https://github.com/areas0/BackupChecker/workflows/Build%20pre-check/badge.svg)
 # BackupChecker
 Tool via network (or local) that does an integrity check for backups in C# using SHA256 hashes. 
 .Net Core (latest version) is required! Made for windows, can be adapted to fit linux environment.
