@@ -71,7 +71,7 @@ namespace IntegrityChecker.Backend
             for (var i = 0; i < message.Length; i++)
             {
                 var j = i;
-                // if lastindexof returns -1 it means that there are no more packet in the message
+                // if LastIndexOf returns -1 it means that there are no more packet in the message
                 if (message.LastIndexOf('\0') == -1)
                     break;
                 i = message.LastIndexOf('\0');
@@ -100,7 +100,7 @@ namespace IntegrityChecker.Backend
             {
                 Logger.Instance.Log(Logger.Type.Ok, $"SendObject started, owner: {owner} Id: {id} Message: {message}");
                 var packet = new Packet() {Id = id, Message = message, OwnerT = owner};
-                var data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(packet) + "\0");
+                var data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(packet) + "\0"); // \0 is used as a message delimiter 
 
                 // Get a client stream for reading and writing.
 

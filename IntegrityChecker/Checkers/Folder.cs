@@ -28,22 +28,28 @@ namespace IntegrityChecker.Checkers
         public Folder(string path ="", bool manual = false, bool onlyPath = false)
         {
             _path = path;
+            // In case of manual load, we don't initialize all the fields
             if (manual)
                 return;
+            
             if (!Directory.Exists(path))
             {
                 Logger.Instance.Log(Logger.Type.Error, $"Folder constructor: 404 directory not found at {path}");
                 throw new ArgumentException("Integrity checker: init failed");
             }
+            
             Logger.Instance.Log(Logger.Type.Ok, "Folder: started loading the folder");
             LoadFolder(path);
+            
             Logger.Instance.Log(Logger.Type.Ok, "Folder: Files found");
+            // FileList specific use: don't compute the hashes
             if (onlyPath)
                 return;
+            
             Console.WriteLine("All files successfully found, starting generation of hashes");
             Generate();
             Logger.Instance.Log(Logger.Type.Ok, "Folder: generation finished");
-            Console.WriteLine("All SHA1 were generated");
+            Console.WriteLine("All SHA256 were generated");
             
             var directoryInfo = new DirectoryInfo(_path);
             var name = directoryInfo.Name;
@@ -112,6 +118,7 @@ namespace IntegrityChecker.Checkers
             var filename = $"Export - {name} {DateTime.Today.Date.ToLongDateString()}.json";
             try
             {
+                //trying to write the folder exported to a file
                 File.Create(filename).Close();
                 File.WriteAllText(filename, jsonString);
             }

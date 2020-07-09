@@ -8,6 +8,8 @@ using IntegrityChecker.Scheduler;
 
 namespace IntegrityChecker.Server
 {
+    // BackupChecker: Server side
+    // Packet ids: 0-3 (client) | 10-20 (server)
     public partial class ServerTcp
     {
         public void StartBackupCommand()

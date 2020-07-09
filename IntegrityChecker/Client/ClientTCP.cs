@@ -14,10 +14,13 @@ namespace IntegrityChecker.Client
 {
     public partial class ClientTcp
     {
-        private TcpClient _client;
+        // Parameters zone with folder to check
         private readonly string _originName;
         private readonly string _originPath;
+        // _ip : ip to connect to
         private readonly string _ip;
+        // Client zone to send & receive packets
+        private TcpClient _client;
         public ClientTcp(string origin, string ip = "127.0.0.1")
         {
             if(!Directory.Exists(origin))

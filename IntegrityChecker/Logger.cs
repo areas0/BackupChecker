@@ -15,6 +15,7 @@ namespace IntegrityChecker
         private string _data;
         private Type _debugLevel;
         private bool _initFailed;
+        // Instance zone to get the logger everywhere during the execution
         private static Logger instance = null;
         private static readonly object padlock = new object();
         public static Logger Instance
@@ -25,6 +26,7 @@ namespace IntegrityChecker
                 {
                     if (instance == null)
                     {
+                        // if the logger is not initialized we create a new object
                         instance = new Logger(Directory.GetCurrentDirectory(), Program.type);
                     }
                     return instance;

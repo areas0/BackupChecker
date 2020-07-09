@@ -32,6 +32,8 @@ Menu:
 3 to check already exported folders
 4 (network) Begin a remote check (server)
 5 (network) Connect to a remote check session (only if server is already online)
+6 (network) Begin a remote check for a folder with the list of its files only (no hash, faster)
+7 (network) Connect to a remote fileList check (faster)
 10 Exit the program
 
         Useful information: the port used to do the remote check is 11000, make sure that it is opened on your desktop or router";
