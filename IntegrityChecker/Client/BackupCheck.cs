@@ -14,16 +14,17 @@ namespace IntegrityChecker.Client
     {
         public void ReceiveBackupCommand()
         {
-            var message = NetworkTcp.Receive(_client, Packet.Owner.Client, 10);
+            var message = _client.Receive(Packet.Owner.Client, 10);
             var task = JsonSerializer.Deserialize<Tasks>(message);
             
             if (task.OriginName == _originName)
-                NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 0);
+                _client.SendObject(Status.Ok, Packet.Owner.Client, 0);
             else
             {
-                NetworkTcp.SendObject(_client, Status.Error, Packet.Owner.Client, 0);
+                _client.SendObject(Status.Error, Packet.Owner.Client, 0);
                 _client.Close();
-                Logger.Instance.Log(Logger.Type.Error, $"ReceiveBackup command failed: origin differs \n Original: {task.OriginName} \n Backup: {_originName}");
+                Logger.Instance.Log(Logger.Type.Error, $"ReceiveBackup command failed: origin differs " +
+                                                       $"\n Original: {task.OriginName} \n Backup: {_originName}");
                 throw new Exception("Backup init failed, exiting...");
             }
 
@@ -51,20 +52,18 @@ namespace IntegrityChecker.Client
         private void Backup()
         {
             var folder = Backup(_originPath);
-            //if(!backup.IsCompleted)
-            //    Console.WriteLine("Waiting for backup Sha1 generation to finish...");
-            //var folder = await backup;
-            while (true)
+
+            while (true) //synchronization via Status OK packets
             {
-                NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 1);
-                var data = NetworkTcp.Receive(_client, Packet.Owner.Client, 20);
+                _client.SendObject(Status.Ok, Packet.Owner.Client, 1);
+                var data = _client.Receive(Packet.Owner.Client, 20);
+                
                 if (JsonSerializer.Deserialize<Status>(data) == Status.Ok)
-                {
                     break;
-                }
             }
+            
             Logger.Instance.Log(Logger.Type.Ok, "Backup: finished on both clients");
-            Console.WriteLine("Finished Sha1 generation on both clients...");
+            Console.WriteLine("Finished Sha256 generation on both clients...");
             ProceedResults(folder);
             
         }
@@ -80,7 +79,7 @@ namespace IntegrityChecker.Client
         private void ProceedResults(string folder)
         {
             Logger.Instance.Log(Logger.Type.Ok, "Client: Sending folder");
-            NetworkTcp.SendViaClient(_client, folder, Packet.Owner.Client, 2);
+            NetworkTcp.SendViaClient(_client, folder, Packet.Owner.Client, 2); // Packet id2 : contains the folder
             GetResults();
         }
 
@@ -88,15 +87,15 @@ namespace IntegrityChecker.Client
         {
             Logger.Instance.Log(Logger.Type.Ok, "Client - GetResults: waiting for results");
             Console.Write("Waiting for results....");
-            while (true)
+            while (true) //synchronization for clients
             {
-                var status = NetworkTcp.Receive(_client, Packet.Owner.Client, 11);
+                var status = _client.Receive(Packet.Owner.Client, 11);
                 if (JsonSerializer.Deserialize<Status>(status) == Status.Ok)
                     break;
             }
             
-            NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 3);
-            var data = NetworkTcp.Receive(_client, Packet.Owner.Client, 12);
+            _client.SendObject(Status.Ok, Packet.Owner.Client, 3);
+            var data = _client.Receive(Packet.Owner.Client, 12); //id12 contains the result
             
             Logger.Instance.Log(Logger.Type.Ok, "Client - GetResults: received results");
             

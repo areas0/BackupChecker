@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 
 namespace IntegrityChecker
@@ -17,12 +18,12 @@ namespace IntegrityChecker
         private bool _initFailed;
         // Instance zone to get the logger everywhere during the execution
         private static Logger instance = null;
-        private static readonly object padlock = new object();
+        private static readonly object Padlock = new object();
         public static Logger Instance
         {
             get
             {
-                lock (padlock)
+                lock (Padlock)
                 {
                     if (instance == null)
                     {
@@ -62,7 +63,7 @@ namespace IntegrityChecker
         public void Log(Type type, string message, Exception exception = null)
         {
             var hm = DateTime.Now;
-            var finalData = $"<{hm.ToString()}>";
+            var finalData = $"<{hm.ToString(CultureInfo.CurrentCulture)}>";
             if (type < _debugLevel)
                 return;
             switch (type)
@@ -90,12 +91,18 @@ namespace IntegrityChecker
 
         public void CheckOut()
         {
-            if (!_initFailed)
+            try
             {
-                File.WriteAllText(_path,_data);
-                return;
+                if (!_initFailed)
+                {
+                    File.WriteAllText(_path, _data);
+                }
             }
-            Console.WriteLine("Log write failed, here you can find the log \n"+ _data);
+            catch (Exception)
+            {
+                Console.WriteLine("Log write failed, here you can find the log \n"+ _data);
+                throw;
+            }
         }
     }
 }

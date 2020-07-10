@@ -124,7 +124,9 @@ namespace IntegrityChecker.Checkers
             }
             catch (Exception e)
             {
-                Logger.Instance.Log(Logger.Type.Error, $"ExportJson failed: file writing failed, make sure you have the appropriate rights");
+                Logger.Instance.Log(Logger.Type.Error, $"ExportJson failed: file writing failed, make " +
+                                                       $"sure you have the appropriate rights. \n {e.Message} " +
+                                                       $"\n {e.StackTrace}");
                 throw;
             }
             Logger.Instance.Log(Logger.Type.Ok, $"ExportJson: successfully exported to {filename}");

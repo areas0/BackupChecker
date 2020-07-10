@@ -21,8 +21,8 @@ namespace IntegrityChecker.Server
             // Client synchronization on both sides
             while (true)
             {
-                NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Server, 30);
-                var message = NetworkTcp.Receive(_client, Packet.Owner.Server, 100);
+                _client.SendObject(Status.Ok, Packet.Owner.Server, 30);
+                var message = _client.Receive(Packet.Owner.Server, 100);
                 if (JsonSerializer.Deserialize<Status>(message) == Status.Ok)
                     break;
                 if(JsonSerializer.Deserialize<Status>(message) == Status.Error)
@@ -36,7 +36,7 @@ namespace IntegrityChecker.Server
         {
             Logger.Instance.Log(Logger.Type.Ok, "Server - ReceiveFileList: Started receive the list");
             
-            var backupFolder = NetworkTcp.Receive(_client, Packet.Owner.Server, 101);
+            var backupFolder = _client.Receive(Packet.Owner.Server, 101);
             
             Logger.Instance.Log(Logger.Type.Ok, "Server - ReceiveFileList: Received the list");
             
@@ -69,7 +69,7 @@ namespace IntegrityChecker.Server
                 ErrorMessage = checker.Message
             };
             Logger.Instance.Log(Logger.Type.Ok, "Server - SendResults: sending results...");
-            NetworkTcp.SendObject(_client, result, Packet.Owner.Server, 31);
+            _client.SendObject(result, Packet.Owner.Server, 31);
             DisplayResults(checker);
         }
 

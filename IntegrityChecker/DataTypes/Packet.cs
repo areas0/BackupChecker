@@ -5,7 +5,7 @@
     {
         public int Id { get; set; }
         public string Message { get; set; }
-        public Owner OwnerT { get; set; }
+        public Owner PacketOwner { get; set; }
         public enum Owner
         {
             Server,

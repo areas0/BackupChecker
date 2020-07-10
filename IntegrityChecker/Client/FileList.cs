@@ -22,8 +22,8 @@ namespace IntegrityChecker.Client
             //synchronization zone: waits for both client to send an ok
             while (true)
             {
-                NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Client, 100);
-                var message = NetworkTcp.Receive(_client, Packet.Owner.Client, 30);
+                _client.SendObject(Status.Ok, Packet.Owner.Client, 100);
+                var message = _client.Receive(Packet.Owner.Client, 30);
                 if (JsonSerializer.Deserialize<Status>(message) == Status.Ok)
                     break;
                 Logger.Instance.Log(Logger.Type.Warning, "Client - GenerateFileList: Waiting for server...");
@@ -35,14 +35,14 @@ namespace IntegrityChecker.Client
         private void SendFileList(Folder folder)
         {
             Logger.Instance.Log(Logger.Type.Ok, "Client - SendFileList: sending folder");
-            NetworkTcp.SendViaClient(_client, folder.ExportJson(), Packet.Owner.Client, 101);
+            _client.SendViaClient(folder.ExportJson(), Packet.Owner.Client, 101);
             ReceiveResults();
         }
 
         private void ReceiveResults()
         {
             Logger.Instance.Log(Logger.Type.Ok, "Client - ReceiveResults: waiting for results...");
-            var results = NetworkTcp.Receive(_client, Packet.Owner.Client, 31);
+            var results = _client.Receive(Packet.Owner.Client, 31);
             
             var result = JsonSerializer.Deserialize<Result>(results);
             if (result.ErrorCount == 0)

@@ -54,7 +54,7 @@ namespace IntegrityChecker.Scheduler
                     clientTcp.ReceiveBackupCommand();
                     break;
                 case Tasks.Task.CompareFileList:
-                    Console.WriteLine("Client mode activated! Enter the path to work on please: ");
+                    Console.WriteLine("Server mode activated! Enter the path to work on please: ");
                     originBackup = Console.ReadLine();
                     if (!Directory.Exists(originBackup))
                     {

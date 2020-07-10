@@ -12,7 +12,7 @@ namespace IntegrityChecker.Backend
 {
     public static class NetworkTcp
     {
-        public static string Receive(TcpClient client, Packet.Owner owner, int expectedId)
+        public static string Receive(this TcpClient client, Packet.Owner owner, int expectedId)
         {
             var data = "";
             Logger.Instance.Log(Logger.Type.Ok, $"Receiver started: owner: {owner} expectedId: {expectedId}");
@@ -38,9 +38,9 @@ namespace IntegrityChecker.Backend
                         if (packet is null)
                             continue;
 
-                        if (packet.OwnerT != owner)
+                        if (packet.PacketOwner != owner)
                         {
-                            Logger.Instance.Log(Logger.Type.Ok, $"Received a packet owner: {packet.OwnerT} Id: {packet.Id} data: {packet.Message}");
+                            Logger.Instance.Log(Logger.Type.Ok, $"Received a packet owner: {packet.PacketOwner} Id: {packet.Id} data: {packet.Message}");
                             return packet.Message;
                         }
                     }
@@ -76,6 +76,7 @@ namespace IntegrityChecker.Backend
                     break;
                 i = message.LastIndexOf('\0');
                 messages.Add(message.Substring(j, i-j));
+                message = message.Substring(i, message.Length - i - 1);
             }
             Logger.Instance.Log(Logger.Type.Ok,$"Current data {messages[0]}");
 
@@ -94,12 +95,12 @@ namespace IntegrityChecker.Backend
         }
         
 
-        public static void SendViaClient(TcpClient client, string message, Packet.Owner owner, int id)
+        public static void SendViaClient(this TcpClient client, string message, Packet.Owner owner, int id)
         {
             try
             {
                 Logger.Instance.Log(Logger.Type.Ok, $"SendObject started, owner: {owner} Id: {id} Message: {message}");
-                var packet = new Packet() {Id = id, Message = message, OwnerT = owner};
+                var packet = new Packet() {Id = id, Message = message, PacketOwner = owner};
                 var data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(packet) + "\0"); // \0 is used as a message delimiter 
 
                 // Get a client stream for reading and writing.
@@ -117,7 +118,7 @@ namespace IntegrityChecker.Backend
             }
         }
 
-        public static void SendObject(TcpClient client, object obj, Packet.Owner owner, int id)
+        public static void SendObject(this TcpClient client, object obj, Packet.Owner owner, int id)
         {
             try
             {

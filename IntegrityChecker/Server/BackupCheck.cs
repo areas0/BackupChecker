@@ -18,14 +18,16 @@ namespace IntegrityChecker.Server
             var task = new Tasks {OriginName = _originName, Current = Tasks.Task.Backup};
             
             // SEND: Packet of task (id 10)
-            NetworkTcp.SendObject(_client, task, Packet.Owner.Server, 10);
+            _client.SendObject(task, Packet.Owner.Server, 10);
+            
             // RECEIVE: Packet of status (id 0)
-            var data = NetworkTcp.Receive(_client, Packet.Owner.Server, 0);
+            var data = _client.Receive(Packet.Owner.Server, 0);
             var status = JsonSerializer.Deserialize<Status>(data);
 
             if (status == Status.Error) // stop the process if there is something on client not working
             {
-                Logger.Instance.Log(Logger.Type.Error, "Server - SendBackup: there was an error on the other client");
+                Logger.Instance.Log(Logger.Type.Error, "Server - SendBackup: " +
+                                                       "there was an error on the other client");
                 throw new Exception("Backup init failed, exiting...");
             } 
 
@@ -40,9 +42,9 @@ namespace IntegrityChecker.Server
             
             //PACKETS priority high: confirm backup finished on both client
             // SEND: Status packet (id20) (synchronize with client)
-            NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Server, 20);
+            _client.SendObject(Status.Ok, Packet.Owner.Server, 20);
             // RECEIVE: Status packet (id 1) (verifies that client has finished)
-            var currentStatus = JsonSerializer.Deserialize<Status>(NetworkTcp.Receive(_client, Packet.Owner.Server, 1));
+            var currentStatus = JsonSerializer.Deserialize<Status>(_client.Receive(Packet.Owner.Server, 1));
             if (currentStatus == Status.Ok)
             {
                 Logger.Instance.Log(Logger.Type.Ok, "Server - ExecuteBackup: finished on both client correctly");
@@ -66,8 +68,10 @@ namespace IntegrityChecker.Server
         private void ReceiveResults(string folder)
         {
             Logger.Instance.Log(Logger.Type.Ok, "Server - ReceiveResults: waiting for results");
+            
             // RECEIVE: Folder packet (id2) (will allow to rebuild the folder via Loader.LoadJson
-            var data = NetworkTcp.Receive(_client, Packet.Owner.Server, 2);
+            var data = _client.Receive(Packet.Owner.Server, 2);
+            
             Logger.Instance.Log(Logger.Type.Ok, "Server - ReceiveResults: results received");
             try
             {
@@ -75,7 +79,7 @@ namespace IntegrityChecker.Server
             }
             catch (Exception)
             {
-                Logger.Instance.Log(Logger.Type.Error, "Server - ReceiveResults: couldn't write to test.json received folder");
+                Logger.Instance.Log(Logger.Type.Error, "Server - ReceiveResults: couldn't write test.json received in the current folder");
                 //ignore
             }
             // Rebuilding both folders from json output
@@ -86,17 +90,23 @@ namespace IntegrityChecker.Server
             Loader.LoadJson(folder, ref original);
 
             Logger.Instance.Log(Logger.Type.Ok, "Server - ReceiveResults: loaded successfully, now starting checker");
+            
             // sending the folders to a checker which will compute missing files &/ errors
-            var checker = new Checker(_originPath, _originPath, true){BackupFolder = f, OriginalFolder = original};
+            var checker = new Checker(_originPath, _originPath, true)
+            {
+                BackupFolder = f, OriginalFolder = original
+            };
+            
             var result = checker.CheckFolders();
             var errors = checker.Errors;
+            
             // SEND: Status Ok packet to warn client that the process is done (id11)
-            NetworkTcp.SendObject(_client, Status.Ok, Packet.Owner.Server, 11);
+            _client.SendObject(Status.Ok, Packet.Owner.Server, 11);
             
             // Waiting for client to be ready
             while (true)
             {
-                var status = NetworkTcp.Receive(_client, Packet.Owner.Server, 3);
+                var status = _client.Receive(Packet.Owner.Server, 3);
                 if (JsonSerializer.Deserialize<Status>(status) == Status.Ok)
                     break;
             }
@@ -109,7 +119,7 @@ namespace IntegrityChecker.Server
             Logger.Instance.Log(Logger.Type.Ok, "Server - SendResults: sending results");
             // errors and result are sent via json using a parameterless constructor class (see documentation on JsonSerializer.Deserialize)
             var resultF = new Result {ErrorCount = errors, ErrorMessage = result};
-            NetworkTcp.SendObject(_client, resultF, Packet.Owner.Server, 12);
+            _client.SendObject(resultF, Packet.Owner.Server, 12);
             
             //POST PROCESS | Make sure that client receives the packet
             Console.ReadKey();
