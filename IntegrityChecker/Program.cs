@@ -27,8 +27,8 @@ namespace IntegrityChecker
         Welcome to integrity checker V0.7b
 
 Menu: 
-1 to export a folder SHA1 
-2 to get the SHA1 value of a file
+1 to export a folder SHA256
+2 to get the SHA256 value of a file
 3 to check already exported folders
 4 (network) Begin a remote check (server)
 5 (network) Connect to a remote check session (only if server is already online)

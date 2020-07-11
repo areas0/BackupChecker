@@ -76,7 +76,6 @@ namespace IntegrityChecker.Backend
                     break;
                 i = message.LastIndexOf('\0');
                 messages.Add(message.Substring(j, i-j));
-                message = message.Substring(i, message.Length - i - 1);
             }
             Logger.Instance.Log(Logger.Type.Ok,$"Current data {messages[0]}");
 
